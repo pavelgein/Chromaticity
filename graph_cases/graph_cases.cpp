@@ -16,6 +16,9 @@ struct TNode {
         return (component < other.component) &&
                (component == other.component || id < other.id);
     }
+
+    TNode(size_t component, size_t id) : component(component), id(id) {}
+    TNode() : component(0), id(0) {}
 };
 
 
@@ -193,14 +196,14 @@ INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
     for (size_t comp1 = 0; comp1 != graph.size() - 1; ++comp1) {
         INT comp1_size = graph[comp1];
         for (size_t ind11 = 0; ind11 != comp1_size - 1; ++ind11) {
-            TNode node11 = TNode{.component=comp1, .id=ind11};
+            TNode node11{comp1, ind11};
             for (size_t ind12 = ind11 + 1; ind12 != comp1_size; ++ind12) {
-                TNode node12 = TNode{.component=comp1, .id=ind12};
+                TNode node12{comp1, ind12};
 
                 for (size_t comp2 = comp1 + 1; comp2 != graph.size(); ++comp2) {
                     INT comp2_size = graph[comp2];
                     for (size_t ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
-                        TNode node21 = {.component=comp2, .id=ind21};
+                        TNode node21{comp2, ind21};
                         TEdge edge1{node11, node21};
                         TEdge edge2{node12, node21};
                         if (in_container(edge1, edges) ||
@@ -211,7 +214,7 @@ INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
                         for (size_t ind22 = ind21 + 1;
                              ind22 != comp2_size;
                              ++ind22) {
-                            TNode node22 = {.component=comp2, .id=ind22};
+                            TNode node22{comp2, ind22};
                             TEdge edge3{node11, node22};
                             TEdge edge4{node12, node22};
                             if (!in_container(edge3, edges) &&
@@ -242,21 +245,21 @@ INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
     for (size_t comp1 = 0; comp1 != graph.size() - 1; ++comp1) {
         INT comp1_size = graph[comp1];
         for (INT ind1 = 0; ind1 != comp1_size; ++ind1) {
-            TNode node1 = TNode{.component=comp1, .id=ind1};
+            TNode node1 = TNode{comp1, ind1};
             for (size_t comp2 = 0; comp2 != graph.size(); ++comp2) {
                 if (comp2 == comp1) {
                     continue;
                 }
                 INT comp2_size = graph[comp2];
                 for (INT ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
-                    TNode node21{.component=comp2, .id=ind21};
+                    TNode node21{comp2, ind21};
                     TEdge edge1{node1, node21};
                     if (in_container(edge1, edges)) {
                         continue;
                     }
 
                     for (INT ind22 = ind21 + 1; ind22 != comp2_size; ++ind22) {
-                        TNode node22{.component=comp2, .id=ind22};
+                        TNode node22{comp2, ind22};
                         TEdge edge2{node1, node22};
                         if (in_container(edge2, edges)) {
                             continue;
@@ -268,7 +271,7 @@ INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
                             }
                             INT comp3_size = graph[comp3];
                             for (INT ind3 = 0; ind3 != comp3_size; ++ind3) {
-                                TNode node3{.component=comp3, .id=ind3};
+                                TNode node3{comp3, ind3};
                                 TEdge edge3{node3, node21};
                                 TEdge edge4{node3, node22};
                                 TEdge edge5{node1, node3};
@@ -379,8 +382,8 @@ std::vector<TEdge> generate_all_edges(INT comp1, INT comp2, size_t comp1id,
     std::vector<TEdge> ans(comp1 * comp2);
     for (INT i = 0; i != comp1; ++i) {
         for (INT j = 0; j != comp2; ++j) {
-            TNode node1{.component=comp1id, .id=i};
-            TNode node2{.component=comp2id, .id=j};
+            TNode node1{comp1id, i};
+            TNode node2{comp2id, j};
             ans[i * comp2 + j] = TEdge{node1, node2};
         }
     }
