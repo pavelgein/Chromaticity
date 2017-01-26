@@ -303,8 +303,6 @@ INT count_xi_2_and_2xi_3(const TContainer& container) {
     for (iter1 = container.cbegin(); iter1 != container.cend(); ++iter1) {
         for (auto iter2 = iter1; iter2 != container.cend(); ++iter2) {
             if (is_xi2_subgraph(*iter1, *iter2)) {
-                // std::cout << "Try!" << std::endl;
-                // std::cout << *iter1 << " " << *iter2 << std::endl;
                 TEdge additional_edge = build_up_to_triangle(*iter1, *iter2);
                 if (container.find(additional_edge) != container.end()) {
                     ++xi_3;
@@ -316,8 +314,6 @@ INT count_xi_2_and_2xi_3(const TContainer& container) {
 
     xi_2 = xi_2 - xi_3;
     xi_3 /= 3;
-
-    // std::cout << xi_2 << " " << xi_3 << std::endl;
 
     return 2 * xi_3 + xi_2;
 }
@@ -481,8 +477,6 @@ void compare_two_graphs(const TGraph& source, const TGraph target,
     }
 
     do {
-        // print_collection(debug, combination);
-        // debug << std::endl;
         TEdgeSet current_edges;
         for (auto x: combination) {
             current_edges.insert(all_edges[x]);
@@ -508,34 +502,9 @@ void compare_two_graphs(const TGraph& source, const TGraph target,
 }
 
 
-//int main(int argc, const char **argv) {
 int main(void) {
-    // TNode first{1, 2}, second{2, 3}, third{3, 1}, fourth{1, 4};
-    // TEdge edge{first, second};
-    // TEdge edge2{first, third};
-    // TEdge edge3{second, third};
-    // TEdge edge4{third, fourth};
-    // TEdge edge5{third, second};
-    // std::cout << is_xi2_subgraph(edge, edge2) << std::endl;
-    // std::cout << is_adjanced(edge, edge2) << std::endl;
-    // std::cout << only_one_common_component(edge, edge2) << std::endl;
-    // std::cout << is_triangle(edge, edge2, edge3) << std::endl;
-    // std::cout << is_triangle(edge, edge2, edge4) << std::endl;
-    //
-    // TEdgeSet edge_set{edge, edge2, edge5};
-    // for (const auto& x: edge_set)
-    //     std::cout << x << std::endl;
-    // std::cout << count_xi_2_and_2xi_3(edge_set) << std::endl;
-    //
     TGraph graph{7, 2, 2};
     TGraph graph2{4, 4, 3};
-    // TGraph graph2{6, 3, 2};
-    // TNode one{0, 1}, two{1, 1};
-    // TEdge edge_x{one, two};
-    // TEdgeSet edge_set2{edge_x};
-    // std::cout << compute_i4_2parts(graph, edge_set2) << std::endl;
-    // std::cout << compute_i4_3parts(graph, edge_set2) << std::endl;
-    // std::cout << compute_i4(graph, edge_set2) << std::endl;
     compare_two_graphs(graph, graph2);
     return 0;
 }
