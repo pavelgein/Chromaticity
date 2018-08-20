@@ -1,10 +1,13 @@
+#include <utility>
 #include <iostream>
 #include <vector>
 #include <unordered_set>
 #include <sstream>
 #include <cassert>
 
-typedef unsigned INT;
+#include "math_utils.h"
+#include "multipartite_graphs.h"
+
 
 struct TNode {
     size_t component;
@@ -46,8 +49,18 @@ std::ostream& operator<<(std::ostream& os, const TEdge edge) {
     return os;
 }
 
-typedef std::vector<INT>  TGraph;
+typedef std::vector<INT> TGraph;
 typedef std::unordered_set<TEdge> TEdgeSet;
+
+INT compute_i4(const TGraph& graph) {
+    INT ans = 0;
+    for (size_t i = 0; i != graph.size() - 1; ++i) {
+        for (size_t j = i + 1; j != graph.size(); ++j) {
+            ans += c_n_2(graph[i]) * c_n_2(graph[j]);
+        }
+    }
+    return ans;
+}
 
 
 bool is_adjanced(const TEdge& first, const TEdge& second) {
@@ -114,52 +127,6 @@ TEdge build_up_to_triangle(const TEdge& first, const TEdge& second) {
     return TEdge{target1, target2};
 }
 
-INT c_n_2(INT n) {
-    return n * (n - 1) / 2;
-}
-
-template<typename T, class TContainer>
-T sum_collection(const TContainer& container, T init_value) {
-    T sum = init_value;
-    for (const auto& x: container) {
-        sum += x;
-    }
-    return sum;
-}
-
-template<typename T, class TContainer>
-T sigma2(const TContainer& container) {
-    T ans = 0;
-    for (auto iter1 = container.begin(); iter1 != container.end(); ++iter1) {
-        for (auto iter2 = iter1; iter2 != container.end(); ++iter2) {
-            if (iter1 == iter2) {
-                continue;
-            }
-            ans += (*iter1) * (*iter2);
-        }
-    }
-    return ans;
-}
-
-template<typename T, class TContainer>
-T sigma3(const TContainer& container) {
-    T ans = 0;
-    for (auto iter1 = container.begin(); iter1 != container.end(); ++iter1) {
-        for (auto iter2 = iter1; iter2 != container.end(); ++iter2) {
-            if (iter1 == iter2) {
-                continue;
-            }
-            for (auto iter3 = iter2; iter3 != container.end(); ++iter3) {
-                if (iter3 == iter1 || iter3 == iter2) {
-                    continue;
-                }
-                ans += (*iter1) * (*iter2) * (*iter3);
-            }
-        }
-    }
-    return ans;
-}
-
 
 template <class TContainer>
 INT compute_xi1(const TGraph& graph, const TContainer& edges) {
@@ -180,15 +147,6 @@ INT compute_i3(const TGraph& graph, const TContainer& edges) {
            count_xi_2_and_2xi_3(edges);
 }
 
-INT compute_i4(const TGraph& graph) {
-    INT ans = 0;
-    for (size_t i = 0; i != graph.size() - 1; ++i) {
-        for (size_t j = i + 1; j != graph.size(); ++j) {
-            ans += c_n_2(graph[i]) * c_n_2(graph[j]);
-        }
-    }
-    return ans;
-}
 
 template <class TContainer>
 INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
@@ -353,8 +311,6 @@ namespace std {
 }
 
 
-
-
 template<class TContainer>
 std::ostream& print_collection(std::ostream& outp, const TContainer& container) {
     for (const auto& x: container) {
@@ -401,6 +357,11 @@ bool next_combination(std::vector<size_t>& combination, size_t n) {
         }
     return false;
 }
+
+
+//bool solve_case(const TGraph& source, const TGraph& target, TEdgeSet current_edges, std::ostream& debug) {
+    //return true;
+//}
 
 void compare_two_graphs(const TGraph& source, const TGraph target,
     std::ostream& debug=std::cout) {
@@ -487,9 +448,9 @@ void compare_two_graphs(const TGraph& source, const TGraph target,
 
         print_collection(debug, current_edges);
         INT i3_mod = compute_i3(target, current_edges);
-        debug << "I3:" << i3_mod;
+        debug << "I3:" << i3_mod << " ";
         if (i3_mod != source_i3) {
-            debug << " Answer: No Reason: I3";
+            debug << "Answer: No Reason: I3";
         } else {
             INT i4_mod = compute_i4(target, current_edges);
             debug << "I4: " << i4_mod;
@@ -500,6 +461,29 @@ void compare_two_graphs(const TGraph& source, const TGraph target,
             }
         }
 
+        debug << " ";
+        int c_e12 = 0;
+        int c_e13 = 0;
+        int c_e23 = 0;
+        for (const auto& edge: current_edges) {
+            auto firstComponent = edge.first.component;
+            auto secondComponent = edge.second.component;
+            if (firstComponent > secondComponent) {
+                std::swap(firstComponent, secondComponent);
+            }
+
+            if (firstComponent == 1) {
+                if (secondComponent == 2) {
+                    c_e12 += 1;
+                } else {
+                    c_e13 += 1;
+                }
+            } else {
+                c_e23 += 1;
+            }
+        }
+
+        debug << "e12=" << c_e12 << ", e23=" << c_e23 << ", e13=" << c_e13;
         debug << std::endl;
     } while (next_combination(combination, target_edges - 1));
 }
