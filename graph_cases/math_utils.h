@@ -1,8 +1,9 @@
 #pragma once
 
-template<typename T, class TContainer>
-T sigma2(const TContainer& container) {
-    T ans = 0;
+template<class TContainer>
+typename TContainer::value_type sigma2(const TContainer& container) {
+    using TValue = typename TContainer::value_type;
+    TValue ans = TValue();
     for (auto iter1 = container.begin(); iter1 != container.end(); ++iter1) {
         for (auto iter2 = iter1; iter2 != container.end(); ++iter2) {
             if (iter1 == iter2) {

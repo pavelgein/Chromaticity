@@ -9,46 +9,40 @@
 #include "multipartite_graphs.h"
 
 
-struct TNode {
-    size_t component;
-    size_t id;
-    bool operator==(const TNode& other) const {
-        return (component == other.component) && (id == other.id);
-    }
-    bool operator<(const TNode& other) const {
-        return (component < other.component) &&
-               (component == other.component || id < other.id);
-    }
+//struct TNode {
+    //size_t component;
+    //size_t id;
+    //bool operator==(const TNode& other) const {
+        //return (component == other.component) && (id == other.id);
+    //}
+    //bool operator<(const TNode& other) const {
+        //return (component < other.component) &&
+               //(component == other.component || id < other.id);
+    //}
 
-    TNode(size_t component, size_t id) : component(component), id(id) {}
-    TNode() : component(0), id(0) {}
-};
-
-
-std::ostream& operator<<(std::ostream& os, const TNode& node) {
-    std::stringstream ss;
-    ss << "TNode(" << node.component << ", " << node.id << ")";
-    os << ss.str();
-    return os;
-}
+    //TNode(size_t component, size_t id) : component(component), id(id) {}
+    //TNode() : component(0), id(0) {}
+//};
 
 
-struct TEdge {
-    TNode first;
-    TNode second;
-    bool operator==(const TEdge& other) const {
-        return ((first == other.first) && (second == other.second)) ||
-               ((first == other.second) && (second == other.first));
-    }
-};
+//std::ostream& operator<<(std::ostream& os, const TNode& node) {
+    //std::stringstream ss;
+    //ss << "TNode(" << node.component << ", " << node.id << ")";
+    //os << ss.str();
+    //return os;
+//}
 
-std::ostream& operator<<(std::ostream& os, const TEdge edge) {
-    std::stringstream ss;
-    ss << "TEdge(" << edge.first << ", " << edge.second << ")";
-    os << ss.str();
-    return os;
-}
 
+//struct TEdge {
+    //TNode first;
+    //TNode second;
+    //bool operator==(const TEdge& other) const {
+        //return ((first == other.first) && (second == other.second)) ||
+               //((first == other.second) && (second == other.first));
+    //}
+//};
+
+typedef TMultipartiteGraph::TEdge TEdge;
 typedef std::vector<INT> TGraph;
 typedef std::unordered_set<TEdge> TEdgeSet;
 
@@ -63,40 +57,40 @@ INT compute_i4(const TGraph& graph) {
 }
 
 
-bool is_adjanced(const TEdge& first, const TEdge& second) {
-    return (first.first == second.first) ||
-           (first.first == second.second) ||
-           (first.second == second.first) ||
-           (first.second == second.second);
+bool is_adjanced(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second) {
+    return (first.First == second.First) ||
+           (first.First == second.Second) ||
+           (first.Second == second.First) ||
+           (first.Second == second.Second);
 }
 
 
-bool in_same_component(const TNode& first, const TNode& second) {
-    return first.component == second.component;
+bool in_same_component(const TMultipartiteGraph::TVertex& first, const TMultipartiteGraph::TVertex& second) {
+    return first.ComponentId == second.ComponentId;
 }
 
 
-bool only_one_common_component(const TEdge& first, const TEdge& second) {
+bool only_one_common_component(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second) {
     int number_of_common_component = 0;
-    if (in_same_component(first.first, second.first))
+    if (in_same_component(first.First, second.First))
         ++number_of_common_component;
-    if (in_same_component(first.first, second.second))
+    if (in_same_component(first.First, second.Second))
         ++number_of_common_component;
-    if (in_same_component(first.second, second.first))
+    if (in_same_component(first.Second, second.First))
         ++number_of_common_component;
-    if (in_same_component(first.second, second.second))
+    if (in_same_component(first.Second, second.Second))
         ++number_of_common_component;
     return (number_of_common_component == 1);
 }
 
 
-bool is_xi2_subgraph(const TEdge& first, const TEdge& second) {
+bool is_xi2_subgraph(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second) {
     return is_adjanced(first, second) &&
            only_one_common_component(first, second);
 }
 
 
-bool is_triangle(const TEdge& first, const TEdge& second, const TEdge& third) {
+bool is_triangle(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second, const TMultipartiteGraph::TEdge& third) {
     return is_xi2_subgraph(first, second) &&
            is_xi2_subgraph(second, third) &&
            is_xi2_subgraph(third, first);
@@ -104,25 +98,25 @@ bool is_triangle(const TEdge& first, const TEdge& second, const TEdge& third) {
 
 
 TEdge build_up_to_triangle(const TEdge& first, const TEdge& second) {
-    TNode target1, target2;
-    if (in_same_component(first.first, second.first)) {
-        target1 = first.second;
-        target2 = second.second;
+    TMultipartiteGraph::TVertex target1, target2;
+    if (in_same_component(first.First, second.First)) {
+        target1 = first.Second;
+        target2 = second.Second;
     }
 
-    if (in_same_component(first.first, second.second)) {
-        target1 = first.second;
-        target2 = second.first;
+    if (in_same_component(first.First, second.Second)) {
+        target1 = first.Second;
+        target2 = second.First;
     }
 
-    if (in_same_component(first.second, second.first)) {
-        target1 = first.first;
-        target2 = second.second;
+    if (in_same_component(first.Second, second.First)) {
+        target1 = first.First;
+        target2 = second.Second;
     }
 
-    if (in_same_component(first.second, second.second)) {
-        target1 = first.first;
-        target2 = second.first;
+    if (in_same_component(first.Second, second.Second)) {
+        target1 = first.First;
+        target2 = second.First;
     }
     return TEdge{target1, target2};
 }
@@ -133,8 +127,8 @@ INT compute_xi1(const TGraph& graph, const TContainer& edges) {
    INT ans = 0;
    INT total_vertix = sum_collection(graph, 0);
    for (const auto& edge: edges) {
-        auto first_component = edge.first.component;
-        auto second_component = edge.second.component;
+        auto first_component = edge.First.ComponentId;
+        auto second_component = edge.Second.ComponentId;
         ans += total_vertix - graph[first_component] - graph[second_component];
    }
    return ans;
@@ -152,16 +146,16 @@ template <class TContainer>
 INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
     INT ans = 0;
     for (size_t comp1 = 0; comp1 != graph.size() - 1; ++comp1) {
-        INT comp1_size = graph[comp1];
-        for (size_t ind11 = 0; ind11 != comp1_size - 1; ++ind11) {
-            TNode node11{comp1, ind11};
-            for (size_t ind12 = ind11 + 1; ind12 != comp1_size; ++ind12) {
-                TNode node12{comp1, ind12};
+        size_t comp1_size = graph[comp1];
+        for (INT ind11 = 0; ind11 != comp1_size - 1; ++ind11) {
+            TMultipartiteGraph::TVertex node11{comp1, ind11};
+            for (INT ind12 = ind11 + 1; ind12 != comp1_size; ++ind12) {
+                TMultipartiteGraph::TVertex node12{comp1, ind12};
 
                 for (size_t comp2 = comp1 + 1; comp2 != graph.size(); ++comp2) {
-                    INT comp2_size = graph[comp2];
-                    for (size_t ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
-                        TNode node21{comp2, ind21};
+                    size_t comp2_size = graph[comp2];
+                    for (INT ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
+                        TMultipartiteGraph::TVertex node21{comp2, ind21};
                         TEdge edge1{node11, node21};
                         TEdge edge2{node12, node21};
                         if (in_container(edge1, edges) ||
@@ -169,10 +163,10 @@ INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
                                 continue;
                             }
 
-                        for (size_t ind22 = ind21 + 1;
+                        for (INT ind22 = ind21 + 1;
                              ind22 != comp2_size;
                              ++ind22) {
-                            TNode node22{comp2, ind22};
+                            TMultipartiteGraph::TVertex node22{comp2, ind22};
                             TEdge edge3{node11, node22};
                             TEdge edge4{node12, node22};
                             if (!in_container(edge3, edges) &&
@@ -203,21 +197,21 @@ INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
     for (size_t comp1 = 0; comp1 != graph.size() - 1; ++comp1) {
         INT comp1_size = graph[comp1];
         for (INT ind1 = 0; ind1 != comp1_size; ++ind1) {
-            TNode node1 = TNode{comp1, ind1};
+            TMultipartiteGraph::TVertex node1 = TMultipartiteGraph::TVertex{comp1, ind1};
             for (size_t comp2 = 0; comp2 != graph.size(); ++comp2) {
                 if (comp2 == comp1) {
                     continue;
                 }
                 INT comp2_size = graph[comp2];
                 for (INT ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
-                    TNode node21{comp2, ind21};
+                    TMultipartiteGraph::TVertex node21{comp2, ind21};
                     TEdge edge1{node1, node21};
                     if (in_container(edge1, edges)) {
                         continue;
                     }
 
                     for (INT ind22 = ind21 + 1; ind22 != comp2_size; ++ind22) {
-                        TNode node22{comp2, ind22};
+                        TMultipartiteGraph::TVertex node22{comp2, ind22};
                         TEdge edge2{node1, node22};
                         if (in_container(edge2, edges)) {
                             continue;
@@ -229,7 +223,7 @@ INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
                             }
                             INT comp3_size = graph[comp3];
                             for (INT ind3 = 0; ind3 != comp3_size; ++ind3) {
-                                TNode node3{comp3, ind3};
+                                TMultipartiteGraph::TVertex node3{comp3, ind3};
                                 TEdge edge3{node3, node21};
                                 TEdge edge4{node3, node22};
                                 TEdge edge5{node1, node3};
@@ -292,24 +286,6 @@ std::ostream& operator<<(std::ostream& outp, const TGraph& graph) {
 }
 
 
-namespace std {
-    template<>
-    struct std::hash<TNode> {
-        std::size_t operator()(const TNode& node) const {
-            return static_cast<std::size_t>(node.component << 4) ^ (node.id);
-        }
-    };
-
-
-    template<>
-    struct hash<TEdge> {
-        std::size_t operator()(const TEdge& edge) const {
-            return std::hash<TNode>()(edge.first) ^
-                   std::hash<TNode>()(edge.second);
-        }
-    };
-}
-
 
 template<class TContainer>
 std::ostream& print_collection(std::ostream& outp, const TContainer& container) {
@@ -338,8 +314,8 @@ std::vector<TEdge> generate_all_edges(INT comp1, INT comp2, size_t comp1id,
     std::vector<TEdge> ans(comp1 * comp2);
     for (INT i = 0; i != comp1; ++i) {
         for (INT j = 0; j != comp2; ++j) {
-            TNode node1{comp1id, i};
-            TNode node2{comp2id, j};
+            TMultipartiteGraph::TVertex node1{comp1id, i};
+            TMultipartiteGraph::TVertex node2{comp2id, j};
             ans[i * comp2 + j] = TEdge{node1, node2};
         }
     }
@@ -385,8 +361,8 @@ void compare_two_graphs(const TGraph& source, const TGraph target,
     }
 
     debug << "Checking edges" << std::endl;
-    INT source_edges = sigma2<INT>(source);
-    INT target_edges = sigma2<INT>(target);
+    INT source_edges = sigma2(source);
+    INT target_edges = sigma2(target);
 
     debug << "Source: " << source_edges << std::endl;
     debug << "Target: " << target_edges << std::endl;
@@ -466,8 +442,8 @@ void compare_two_graphs(const TGraph& source, const TGraph target,
         int c_e13 = 0;
         int c_e23 = 0;
         for (const auto& edge: current_edges) {
-            auto firstComponent = edge.first.component;
-            auto secondComponent = edge.second.component;
+            auto firstComponent = edge.First.ComponentId;
+            auto secondComponent = edge.Second.ComponentId;
             if (firstComponent > secondComponent) {
                 std::swap(firstComponent, secondComponent);
             }
