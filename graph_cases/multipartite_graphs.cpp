@@ -5,7 +5,8 @@
 #include <sstream>
 
 
-INT TMultipartiteGraph::ComputeI4() const {
+namespace NMultipartiteGraphs {
+INT TCompleteGraph::ComputeI4() const {
     INT ans = 0;
     for (size_t i = 0; i != Components.size() - 1; ++i) {
         for (size_t j = i + 1; j != Components.size(); ++j) {
@@ -15,7 +16,7 @@ INT TMultipartiteGraph::ComputeI4() const {
     return ans;
 }
 
-TMultipartiteGraph::TMultipartiteGraph(const std::initializer_list<INT>& components)
+TCompleteGraph::TCompleteGraph(const std::initializer_list<INT>& components)
     : Components(components)
     , I3Invariant_(0)
     , I4Invariant_(0)
@@ -24,7 +25,7 @@ TMultipartiteGraph::TMultipartiteGraph(const std::initializer_list<INT>& compone
     }
 
 template<class TInputIterator>
-TMultipartiteGraph::TMultipartiteGraph(TInputIterator begin, TInputIterator end)
+TCompleteGraph::TCompleteGraph(TInputIterator begin, TInputIterator end)
     : Components(begin, end)
     , I3Invariant_(0)
     , I4Invariant_(0)
@@ -32,7 +33,7 @@ TMultipartiteGraph::TMultipartiteGraph(TInputIterator begin, TInputIterator end)
     {
     }
 
-INT TMultipartiteGraph::I3Invariant() const {
+INT TCompleteGraph::I3Invariant() const {
     if (Components.size() < 3) {
         return 0;
     }
@@ -44,7 +45,7 @@ INT TMultipartiteGraph::I3Invariant() const {
     return I3Invariant_;
 }
 
-INT TMultipartiteGraph::I4Invariant() const {
+INT TCompleteGraph::I4Invariant() const {
     if (Components.size() < 2) {
         return 0;
     }
@@ -56,7 +57,7 @@ INT TMultipartiteGraph::I4Invariant() const {
     return I4Invariant_;
 };
 
-bool TMultipartiteGraph::operator==(const TMultipartiteGraph& other) const {
+bool TCompleteGraph::operator==(const TCompleteGraph& other) const {
     if (Components.size() != other.Components.size()) {
         return false;
     }
@@ -70,57 +71,58 @@ bool TMultipartiteGraph::operator==(const TMultipartiteGraph& other) const {
     return true;
 }
 
-INT TMultipartiteGraph::ComponentSize(size_t component) const {
+INT TCompleteGraph::ComponentSize(size_t component) const {
     return Components[component];
 }
 
 
-size_t TMultipartiteGraph::ComponentsNumber() const {
+size_t TCompleteGraph::ComponentsNumber() const {
     return Components.size();
 }
 
-TMultipartiteGraph::TVertex::TVertex()
+TVertex::TVertex()
     : ComponentId(0)
     , VertexId(0)
     {
     }
 
 
-TMultipartiteGraph::TVertex::TVertex(size_t componentId, INT vertexId)
+TVertex::TVertex(size_t componentId, INT vertexId)
     : ComponentId(componentId)
     , VertexId(vertexId)
     {
     }
 
-bool TMultipartiteGraph::TVertex::operator==(const TVertex& other) const {
+bool TVertex::operator==(const TVertex& other) const {
     return (ComponentId == other.ComponentId) && (VertexId == other.VertexId);
 }
 
 
-TMultipartiteGraph::TEdge::TEdge()
+TEdge::TEdge()
     : First()
     , Second()
     {
     }
 
-TMultipartiteGraph::TEdge::TEdge(TMultipartiteGraph::TVertex first, TMultipartiteGraph::TVertex second)
+TEdge::TEdge(TVertex first, TVertex second)
     : First(first)
     , Second(second)
     {
     }
 
-bool TMultipartiteGraph::TEdge::operator==(const TMultipartiteGraph::TEdge& other) const {
+bool TEdge::operator==(const TEdge& other) const {
     return (First == other.First) && (Second == other.Second);
 }
+}
 
-std::ostream& operator<<(std::ostream& os, const TMultipartiteGraph::TEdge& edge) {
+std::ostream& operator<<(std::ostream& os, const NMultipartiteGraphs::TEdge& edge) {
     std::stringstream ss;
     ss << "TEdge(" << edge.First << ", " << edge.Second << ")";
     os << ss.str();
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const TMultipartiteGraph::TVertex& node) {
+std::ostream& operator<<(std::ostream& os, const NMultipartiteGraphs::TVertex& node) {
     std::stringstream ss;
     ss << "TNode(" << node.ComponentId << ", " << node.VertexId << ")";
     os << ss.str();

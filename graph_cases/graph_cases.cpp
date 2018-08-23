@@ -8,43 +8,15 @@
 #include "math_utils.h"
 #include "multipartite_graphs.h"
 
-
-//struct TNode {
-    //size_t component;
-    //size_t id;
-    //bool operator==(const TNode& other) const {
-        //return (component == other.component) && (id == other.id);
-    //}
-    //bool operator<(const TNode& other) const {
-        //return (component < other.component) &&
-               //(component == other.component || id < other.id);
-    //}
-
-    //TNode(size_t component, size_t id) : component(component), id(id) {}
-    //TNode() : component(0), id(0) {}
-//};
-
-
-//std::ostream& operator<<(std::ostream& os, const TNode& node) {
-    //std::stringstream ss;
-    //ss << "TNode(" << node.component << ", " << node.id << ")";
-    //os << ss.str();
-    //return os;
-//}
-
-
-//struct TEdge {
-    //TNode first;
-    //TNode second;
-    //bool operator==(const TEdge& other) const {
-        //return ((first == other.first) && (second == other.second)) ||
-               //((first == other.second) && (second == other.first));
-    //}
-//};
-
-typedef TMultipartiteGraph::TEdge TEdge;
+typedef NMultipartiteGraphs::TEdge TEdge;
 typedef std::vector<INT> TGraph;
 typedef std::unordered_set<TEdge> TEdgeSet;
+
+
+template<class TContainer, class TKey>
+bool in_container(const TKey& key, const TContainer& container) {
+    return container.find(key) != container.end();
+}
 
 INT compute_i4(const TGraph& graph) {
     INT ans = 0;
@@ -57,7 +29,7 @@ INT compute_i4(const TGraph& graph) {
 }
 
 
-bool is_adjanced(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second) {
+bool is_adjanced(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
     return (first.First == second.First) ||
            (first.First == second.Second) ||
            (first.Second == second.First) ||
@@ -65,12 +37,12 @@ bool is_adjanced(const TMultipartiteGraph::TEdge& first, const TMultipartiteGrap
 }
 
 
-bool in_same_component(const TMultipartiteGraph::TVertex& first, const TMultipartiteGraph::TVertex& second) {
+bool in_same_component(const NMultipartiteGraphs::TVertex& first, const NMultipartiteGraphs::TVertex& second) {
     return first.ComponentId == second.ComponentId;
 }
 
 
-bool only_one_common_component(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second) {
+bool only_one_common_component(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
     int number_of_common_component = 0;
     if (in_same_component(first.First, second.First))
         ++number_of_common_component;
@@ -84,13 +56,13 @@ bool only_one_common_component(const TMultipartiteGraph::TEdge& first, const TMu
 }
 
 
-bool is_xi2_subgraph(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second) {
+bool is_xi2_subgraph(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
     return is_adjanced(first, second) &&
            only_one_common_component(first, second);
 }
 
 
-bool is_triangle(const TMultipartiteGraph::TEdge& first, const TMultipartiteGraph::TEdge& second, const TMultipartiteGraph::TEdge& third) {
+bool is_triangle(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second, const NMultipartiteGraphs::TEdge& third) {
     return is_xi2_subgraph(first, second) &&
            is_xi2_subgraph(second, third) &&
            is_xi2_subgraph(third, first);
@@ -98,7 +70,7 @@ bool is_triangle(const TMultipartiteGraph::TEdge& first, const TMultipartiteGrap
 
 
 TEdge build_up_to_triangle(const TEdge& first, const TEdge& second) {
-    TMultipartiteGraph::TVertex target1, target2;
+    NMultipartiteGraphs::TVertex target1, target2;
     if (in_same_component(first.First, second.First)) {
         target1 = first.Second;
         target2 = second.Second;
@@ -134,6 +106,30 @@ INT compute_xi1(const TGraph& graph, const TContainer& edges) {
    return ans;
 }
 
+template<class TContainer>
+INT count_xi_2_and_2xi_3(const TContainer& container) {
+    INT xi_3 = 0;
+    INT xi_2 = 0;
+
+    typename TContainer::const_iterator iter1;
+    for (iter1 = container.cbegin(); iter1 != container.cend(); ++iter1) {
+        for (auto iter2 = iter1; iter2 != container.cend(); ++iter2) {
+            if (is_xi2_subgraph(*iter1, *iter2)) {
+                TEdge additional_edge = build_up_to_triangle(*iter1, *iter2);
+                if (container.find(additional_edge) != container.end()) {
+                    ++xi_3;
+                }
+                ++xi_2;
+            }
+        }
+    }
+
+    xi_2 = xi_2 - xi_3;
+    xi_3 /= 3;
+
+    return 2 * xi_3 + xi_2;
+}
+
 
 template <class TContainer>
 INT compute_i3(const TGraph& graph, const TContainer& edges) {
@@ -148,14 +144,14 @@ INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
     for (size_t comp1 = 0; comp1 != graph.size() - 1; ++comp1) {
         size_t comp1_size = graph[comp1];
         for (INT ind11 = 0; ind11 != comp1_size - 1; ++ind11) {
-            TMultipartiteGraph::TVertex node11{comp1, ind11};
+            NMultipartiteGraphs::TVertex node11{comp1, ind11};
             for (INT ind12 = ind11 + 1; ind12 != comp1_size; ++ind12) {
-                TMultipartiteGraph::TVertex node12{comp1, ind12};
+                NMultipartiteGraphs::TVertex node12{comp1, ind12};
 
                 for (size_t comp2 = comp1 + 1; comp2 != graph.size(); ++comp2) {
                     size_t comp2_size = graph[comp2];
                     for (INT ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
-                        TMultipartiteGraph::TVertex node21{comp2, ind21};
+                        NMultipartiteGraphs::TVertex node21{comp2, ind21};
                         TEdge edge1{node11, node21};
                         TEdge edge2{node12, node21};
                         if (in_container(edge1, edges) ||
@@ -166,7 +162,7 @@ INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
                         for (INT ind22 = ind21 + 1;
                              ind22 != comp2_size;
                              ++ind22) {
-                            TMultipartiteGraph::TVertex node22{comp2, ind22};
+                            NMultipartiteGraphs::TVertex node22{comp2, ind22};
                             TEdge edge3{node11, node22};
                             TEdge edge4{node12, node22};
                             if (!in_container(edge3, edges) &&
@@ -182,12 +178,6 @@ INT compute_i4_2parts(const TGraph& graph, const TContainer& edges) {
     return ans;
 }
 
-
-template<class TContainer, class TKey>
-bool in_container(const TKey& key, const TContainer& container) {
-    return container.find(key) != container.end();
-}
-
 template<class TContainer>
 INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
     INT ans = 0;
@@ -197,21 +187,21 @@ INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
     for (size_t comp1 = 0; comp1 != graph.size() - 1; ++comp1) {
         INT comp1_size = graph[comp1];
         for (INT ind1 = 0; ind1 != comp1_size; ++ind1) {
-            TMultipartiteGraph::TVertex node1 = TMultipartiteGraph::TVertex{comp1, ind1};
+            NMultipartiteGraphs::TVertex node1 = NMultipartiteGraphs::TVertex{comp1, ind1};
             for (size_t comp2 = 0; comp2 != graph.size(); ++comp2) {
                 if (comp2 == comp1) {
                     continue;
                 }
                 INT comp2_size = graph[comp2];
                 for (INT ind21 = 0; ind21 != comp2_size - 1; ++ind21) {
-                    TMultipartiteGraph::TVertex node21{comp2, ind21};
+                    NMultipartiteGraphs::TVertex node21{comp2, ind21};
                     TEdge edge1{node1, node21};
                     if (in_container(edge1, edges)) {
                         continue;
                     }
 
                     for (INT ind22 = ind21 + 1; ind22 != comp2_size; ++ind22) {
-                        TMultipartiteGraph::TVertex node22{comp2, ind22};
+                        NMultipartiteGraphs::TVertex node22{comp2, ind22};
                         TEdge edge2{node1, node22};
                         if (in_container(edge2, edges)) {
                             continue;
@@ -223,7 +213,7 @@ INT compute_i4_3parts(const TGraph& graph, const TContainer& edges) {
                             }
                             INT comp3_size = graph[comp3];
                             for (INT ind3 = 0; ind3 != comp3_size; ++ind3) {
-                                TMultipartiteGraph::TVertex node3{comp3, ind3};
+                                NMultipartiteGraphs::TVertex node3{comp3, ind3};
                                 TEdge edge3{node3, node21};
                                 TEdge edge4{node3, node22};
                                 TEdge edge5{node1, node3};
@@ -249,29 +239,6 @@ INT compute_i4(const TGraph& graph, const TContainer& edges) {
            compute_i4_3parts(graph, edges);
 }
 
-template<class TContainer>
-INT count_xi_2_and_2xi_3(const TContainer& container) {
-    INT xi_3 = 0;
-    INT xi_2 = 0;
-
-    typename TContainer::const_iterator iter1;
-    for (iter1 = container.cbegin(); iter1 != container.cend(); ++iter1) {
-        for (auto iter2 = iter1; iter2 != container.cend(); ++iter2) {
-            if (is_xi2_subgraph(*iter1, *iter2)) {
-                TEdge additional_edge = build_up_to_triangle(*iter1, *iter2);
-                if (container.find(additional_edge) != container.end()) {
-                    ++xi_3;
-                }
-                ++xi_2;
-            }
-        }
-    }
-
-    xi_2 = xi_2 - xi_3;
-    xi_3 /= 3;
-
-    return 2 * xi_3 + xi_2;
-}
 
 std::ostream& operator<<(std::ostream& outp, const TGraph& graph) {
     outp << "Graph(";
@@ -313,9 +280,9 @@ std::vector<TEdge> generate_all_edges(INT comp1, INT comp2, size_t comp1id,
         size_t comp2id) {
     std::vector<TEdge> ans(comp1 * comp2);
     for (INT i = 0; i != comp1; ++i) {
+        NMultipartiteGraphs::TVertex node1{comp1id, i};
         for (INT j = 0; j != comp2; ++j) {
-            TMultipartiteGraph::TVertex node1{comp1id, i};
-            TMultipartiteGraph::TVertex node2{comp2id, j};
+            NMultipartiteGraphs::TVertex node2{comp2id, j};
             ans[i * comp2 + j] = TEdge{node1, node2};
         }
     }

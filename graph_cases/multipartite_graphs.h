@@ -6,34 +6,34 @@
 #include "local_types.h"
 #include "math_utils.h"
 
-class TMultipartiteGraph {
-public:
-    struct TVertex {
-        size_t ComponentId;
-        INT VertexId;
-        TVertex(size_t ComponentId, INT VertexId);
-        TVertex();
-        bool operator==(const TVertex& other) const;
-    };
+namespace NMultipartiteGraphs {
+struct TVertex {
+    size_t ComponentId;
+    INT VertexId;
+    TVertex(size_t ComponentId, INT VertexId);
+    TVertex();
+    bool operator==(const TVertex& other) const;
+};
 
-    struct TEdge {
-        TVertex First;
-        TVertex Second;
-        TEdge();
-        TEdge(TVertex first, TVertex second);
-        bool operator==(const TEdge& other) const;
-    };
+struct TEdge {
+    TVertex First;
+    TVertex Second;
+    TEdge();
+    TEdge(TVertex first, TVertex second);
+    bool operator==(const TEdge& other) const;
+};
 
+class TCompleteGraph {
 public:
-    TMultipartiteGraph(const std::initializer_list<INT>& components);
+    TCompleteGraph(const std::initializer_list<INT>& components);
 
     template<class TInputIterator>
-    TMultipartiteGraph(TInputIterator begin, TInputIterator end);
+    TCompleteGraph(TInputIterator begin, TInputIterator end);
 
     INT I3Invariant() const;
     INT I4Invariant() const;
 
-    bool operator==(const TMultipartiteGraph& other) const;
+    bool operator==(const TCompleteGraph& other) const;
 
     inline INT ComponentSize(size_t component) const;
     inline size_t ComponentsNumber() const;
@@ -46,25 +46,25 @@ private:
 
     INT ComputeI4() const;
 };
+};
 
-std::ostream& operator<<(std::ostream& os, const TMultipartiteGraph::TEdge& edge);
-std::ostream& operator<<(std::ostream& os, const TMultipartiteGraph::TVertex& node);
+std::ostream& operator<<(std::ostream& os, const NMultipartiteGraphs::TEdge& edge);
+std::ostream& operator<<(std::ostream& os, const NMultipartiteGraphs::TVertex& node);
 
 namespace std {
     template<>
-    struct std::hash<TMultipartiteGraph::TVertex> {
-        std::size_t operator()(const TMultipartiteGraph::TVertex& node) const {
+    struct std::hash<NMultipartiteGraphs::TVertex> {
+        std::size_t operator()(const NMultipartiteGraphs::TVertex& node) const {
             return static_cast<std::size_t>(node.ComponentId << 4) ^ (node.VertexId);
         }
     };
 
 
     template<>
-    struct hash<TMultipartiteGraph::TEdge> {
-        std::size_t operator()(const TMultipartiteGraph::TEdge& edge) const {
-            return std::hash<TMultipartiteGraph::TVertex>()(edge.First) ^
-                   std::hash<TMultipartiteGraph::TVertex>()(edge.Second);
+    struct hash<NMultipartiteGraphs::TEdge> {
+        std::size_t operator()(const NMultipartiteGraphs::TEdge& edge) const {
+            return std::hash<NMultipartiteGraphs::TVertex>()(edge.First) ^
+                   std::hash<NMultipartiteGraphs::TVertex>()(edge.Second);
         }
     };
 }
-
