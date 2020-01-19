@@ -175,7 +175,7 @@ public:
         {
         }
 
-        TIterator(TIterator&& other)
+        TIterator(TIterator&& other) noexcept
             : N(other.N)
             , K(other.K)
             , Combination(std::move(other.Combination))

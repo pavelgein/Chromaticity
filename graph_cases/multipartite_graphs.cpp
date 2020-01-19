@@ -121,7 +121,7 @@ INT TCompleteGraph::I4Invariant() const {
     }
 
     return I4Invariant_;
-};
+}
 
 bool TCompleteGraph::operator==(const TCompleteGraph& other) const {
     if (Components.size() != other.Components.size()) {
@@ -155,7 +155,7 @@ std::vector<TEdge> TCompleteGraph::GenerateEdgesBetweenComponents(size_t first, 
         TVertex firstVertex{first, i};
         for (INT j = 0; j < secondSize; ++j) {
             TVertex secondVertex{second, j};
-            edges.push_back({firstVertex, secondVertex});
+            edges.emplace_back(firstVertex, secondVertex);
         }
     }
 
@@ -205,9 +205,9 @@ bool TEdge::operator==(const TEdge& other) const {
 }
 
 
-TDenseGraph::TDenseGraph(const TCompleteGraph graph, TEdgeSet edgeSet)
-    : Graph(graph)
-    , EdgeSet(edgeSet)
+TDenseGraph::TDenseGraph(TCompleteGraph graph, TEdgeSet edgeSet)
+    : Graph(std::move(graph))
+    , EdgeSet(std::move(edgeSet))
     {
     }
 
@@ -215,7 +215,7 @@ TDenseGraph::TDenseGraph(const TCompleteGraph graph, TEdgeSet edgeSet)
 
 INT TDenseGraph::VerticesCount() const {
     return SumRange(Graph.begin(), Graph.end());
-};
+}
 
 INT TDenseGraph::I2Invariant() const {
     return Graph.I2Invariant() - EdgeSet.size();
@@ -232,7 +232,7 @@ INT TDenseGraph::I3Invariant() const {
 
     return I3Invariant_;
 
-};
+}
 
 INT TDenseGraph::ComputeXi1() const {
    INT ans = 0;
