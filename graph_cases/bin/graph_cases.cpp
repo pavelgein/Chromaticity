@@ -4,22 +4,43 @@
 #include <unordered_set>
 #include <cassert>
 
-#include "math_utils.h"
+#include "local_types.h"
 #include "multipartite_graphs.h"
+#include "utils/print.h"
 
 typedef NMultipartiteGraphs::TEdge TEdge;
 using TGraph = NMultipartiteGraphs::TCompleteGraph;
 typedef std::unordered_set<TEdge> TEdgeSet;
 
 
-
-template<class TContainer>
-std::ostream& print_collection(std::ostream& outp, const TContainer& container) {
-    for (const auto& x: container) {
-        outp << x << " ";
+void WriteEdgeStat(size_t componentsNumber, const TEdgeSet& edgeSet, std::ostream& outp) {
+    std::vector<std::vector<int>> edgeStat{};
+    for (size_t i = 0; i != componentsNumber; ++i) {
+        edgeStat.push_back(std::vector<int>(componentsNumber, 0));
     }
-    return outp;
+
+    for (const auto& edge: edgeSet) {
+        auto firstComponent = edge.First.ComponentId;
+        auto secondComponent = edge.Second.ComponentId;
+        if (firstComponent > secondComponent) {
+            std::swap(firstComponent, secondComponent);
+        }
+
+        edgeStat[firstComponent][secondComponent] += 1;
+    }
+
+    bool first = true;
+    for (size_t i = 0; i + 1 != edgeStat.size(); ++i) {
+        for (size_t j = i + 1; j != edgeStat.size(); ++j) {
+            if (!first) {
+                outp << ", ";
+            }
+            outp << 'e' << i + 1 << j + 1 << '=' << edgeStat[i][j];
+            first = false;
+        }
+    }
 }
+
 
 void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream& debug=std::cout) {
     debug << "Checking graphs" << std::endl;
@@ -100,7 +121,7 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
 
         assert(current_edges.size() == edge_diff);
 
-        print_collection(debug, current_edges);
+        PrintCollection(debug, current_edges);
         NMultipartiteGraphs::TDenseGraph newTarget{target, current_edges};
         INT i3_new = newTarget.I3Invariant();
         debug << "I3:" << i3_new << " ";
@@ -117,28 +138,8 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
         }
 
         debug << " ";
-        int c_e12 = 0;
-        int c_e13 = 0;
-        int c_e23 = 0;
-        for (const auto& edge: current_edges) {
-            auto firstComponent = edge.First.ComponentId;
-            auto secondComponent = edge.Second.ComponentId;
-            if (firstComponent > secondComponent) {
-                std::swap(firstComponent, secondComponent);
-            }
+        WriteEdgeStat(source.ComponentsNumber(), current_edges, debug);
 
-            if (firstComponent == 0) {
-                if (secondComponent == 1) {
-                    c_e12 += 1;
-                } else {
-                    c_e13 += 1;
-                }
-            } else {
-                c_e23 += 1;
-            }
-        }
-
-        debug << "e12=" << c_e12 << ", e23=" << c_e23 << ", e13=" << c_e13;
         debug << std::endl;
     }
 }
