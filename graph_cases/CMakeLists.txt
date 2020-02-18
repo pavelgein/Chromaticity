@@ -9,9 +9,14 @@ set(SOURCE_EXE graph_cases.cpp)
 
 set(SOURCE_LIB multipartite_graphs.cpp)
 
-add_library(mg STATIC ${SOURCE_LIB})
+#add_library(mg STATIC ${SOURCE_LIB})
+
+INCLUDE_DIRECTORIES(lib)
+
+ADD_SUBDIRECTORY(lib)
 
 add_executable(graph_cases ${SOURCE_EXE})       # Создает исполняемый файл с именем main
 
 target_link_libraries(graph_cases mg)
 set_target_properties(graph_cases PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+

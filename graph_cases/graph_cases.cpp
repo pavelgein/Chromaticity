@@ -4,8 +4,8 @@
 #include <unordered_set>
 #include <cassert>
 
-#include "math_utils.h"
-#include "multipartite_graphs.h"
+#include "lib/math_utils.h"
+#include "lib/multipartite_graphs.h"
 
 typedef NMultipartiteGraphs::TEdge TEdge;
 using TGraph = NMultipartiteGraphs::TCompleteGraph;
