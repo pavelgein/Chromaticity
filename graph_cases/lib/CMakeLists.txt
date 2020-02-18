@@ -1,3 +1,6 @@
-ADD_LIBRARY(mg STATIC
+ADD_LIBRARY(lib STATIC
     multipartite_graphs.cpp
+    math_utils.h
 )
+
+TARGET_INCLUDE_DIRECTORIES(lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

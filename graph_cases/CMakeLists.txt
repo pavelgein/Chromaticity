@@ -1,22 +1,11 @@
-cmake_minimum_required(VERSION 2.8) # Проверка версии CMake.
+CMAKE_MINIMUM_REQUIRED(VERSION 3.1) # Проверка версии CMake.
 
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -O3")
+PROJECT(graph_cases)
+SET(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -O3")
+SET(CMAKE_CXX_STANDARD 17)
+SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 
-project(graph_cases)
-
-set(SOURCE_EXE graph_cases.cpp)
-
-set(SOURCE_LIB multipartite_graphs.cpp)
-
-#add_library(mg STATIC ${SOURCE_LIB})
-
-INCLUDE_DIRECTORIES(lib)
 
 ADD_SUBDIRECTORY(lib)
-
-add_executable(graph_cases ${SOURCE_EXE})       # Создает исполняемый файл с именем main
-
-target_link_libraries(graph_cases mg)
-set_target_properties(graph_cases PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-
+ADD_SUBDIRECTORY(bin)
