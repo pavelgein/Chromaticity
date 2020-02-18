@@ -82,7 +82,7 @@ TCompleteGraph::TCompleteGraph(const std::initializer_list<INT>& components)
     : Components{components}
     , I3Invariant_(0)
     , I4Invariant_(0)
-    , Edges_(sigma2(Components))
+    , Edges_(Sigma(2, Components))
     {
     }
 
@@ -91,7 +91,7 @@ TCompleteGraph::TCompleteGraph(TInputIterator begin, TInputIterator end)
     : Components(begin, end)
     , I3Invariant_(0)
     , I4Invariant_(0)
-    , Edges_(sigma2(Components))
+    , Edges_(Sigma(2, Components))
     {
     }
 
@@ -105,7 +105,7 @@ INT TCompleteGraph::I3Invariant() const {
     }
 
     if (I3Invariant_ == 0) {
-        I3Invariant_ = sigma3(Components);
+        I3Invariant_ = Sigma(3, Components);
     }
 
     return I3Invariant_;

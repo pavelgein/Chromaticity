@@ -1,39 +1,5 @@
 #pragma once
 
-template<class TContainer>
-typename TContainer::value_type sigma2(const TContainer& container) {
-    using TValue = typename TContainer::value_type;
-    TValue ans = TValue();
-    for (auto iter1 = container.begin(); iter1 != container.end(); ++iter1) {
-        for (auto iter2 = iter1; iter2 != container.end(); ++iter2) {
-            if (iter1 == iter2) {
-                continue;
-            }
-            ans += (*iter1) * (*iter2);
-        }
-    }
-    return ans;
-}
-
-template<class TContainer>
-typename TContainer::value_type sigma3(const TContainer& container) {
-    typename TContainer::value_type ans{};
-    for (auto iter1 = container.begin(); iter1 != container.end(); ++iter1) {
-        for (auto iter2 = iter1; iter2 != container.end(); ++iter2) {
-            if (iter1 == iter2) {
-                continue;
-            }
-            for (auto iter3 = iter2; iter3 != container.end(); ++iter3) {
-                if (iter3 == iter1 || iter3 == iter2) {
-                    continue;
-                }
-                ans += (*iter1) * (*iter2) * (*iter3);
-            }
-        }
-    }
-    return ans;
-}
-
 template<typename TInt>
 TInt c_n_2(TInt n) {
     return n * (n - 1) / 2;
