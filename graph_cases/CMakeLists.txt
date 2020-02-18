@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1) # Проверка версии CMake.
 
 PROJECT(graph_cases)
 SET(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -O3")
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -O3")
 SET(CMAKE_CXX_STANDARD 17)
 SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 
