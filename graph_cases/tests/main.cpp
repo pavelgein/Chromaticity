@@ -13,7 +13,19 @@ public:
     ITest();
     virtual void Run() const = 0;
     virtual ~ITest() = default;
-    virtual const std::string& GetName() const = 0;
+    std::string GetName() {
+        auto prefix = GetPrefix();
+        if (prefix.empty()) {
+            return GetLocalName();
+        }
+
+        return prefix + "::" + GetLocalName();
+    };
+    virtual std::string GetPrefix() {
+        return "";
+    };
+
+    virtual std::string GetLocalName() const = 0;
 };
 
 
@@ -39,6 +51,12 @@ public:
 } while(0)
 
 
+struct TTestRunStat {
+    int Success = 0;
+    int Failed = 0;
+    int Crashed = 0;
+};
+
 class TTestRegistry {
 public:
     TTestRegistry() = default;
@@ -49,17 +67,28 @@ public:
     }
 
     void RunAll() {
+        TTestRunStat stat;
         for (auto test: Tests) {
-            Run(test);
+            Run(test, stat);
         }
+
+        std::cerr << "**************************" << std::endl;
+        std::cerr << " * Success: " << stat.Success << std::endl;
+        std::cerr << " * Failed: " << stat.Failed << std::endl;
+        std::cerr << " * Crashed: " << stat.Crashed << std::endl;
     }
 
-    void Run(ITest* test) {
+    void Run(ITest* test, TTestRunStat& stat) {
         try {
             test->Run();
             std::cerr << test->GetName() << " OK\n";
+            stat.Success++;
         } catch (const TTestFail& fail) {
             std::cerr << test->GetName() << " Failed: " << fail.what() << std::endl;
+            stat.Failed++;
+        } catch (...) {
+            std::cerr << test->GetName() << " Crashed " << std::endl;
+            stat.Crashed++;
         }
     }
 
@@ -88,12 +117,22 @@ public: \
     { \
     } \
     void Run() const override; \
-    const std::string& GetName() const override { return Name;} \
+    std::string GetLocalName() const override { return Name;} \
 }; \
 TTest##name test##name{};    \
     void TTest##name::Run() const
 
-#define UNIT_TEST_SUITE(name) namespace NTestSute##name
+#define UNIT_TEST_SUITE(name) namespace NTestSuite##name {\
+    class ITest : public ::ITest { \
+    public: \
+        ITest() : ::ITest() {}; \
+        virtual ~ITest() = default; \
+        std::string GetPrefix() override { \
+            return #name; \
+        } \
+    }; \
+}\
+namespace NTestSuite##name
 
 UNIT_TEST(Simple) {
     using namespace NMultipartiteGraphs;
@@ -104,6 +143,10 @@ UNIT_TEST(Simple) {
 
     auto completeGraph = TCompleteGraph({3, 3, 3});
     TDenseGraph graph(completeGraph, edges);
+
+    ASSERT(completeGraph.I2Invariant() == 27, "i2 invariant mismatched");
+    ASSERT(completeGraph.I3Invariant() == 27, "i2 invariant mismatched");
+    ASSERT(completeGraph.I4Invariant() == 27, "i2 invariant mismatched");
 
     ASSERT(graph.I2Invariant() == 26, "i2 invariant mismatched");
     ASSERT(graph.I3Invariant() == 24, "i3 invariant mismatched");
@@ -125,6 +168,14 @@ UNIT_TEST_SUITE(Sigma) {
         ASSERT(Sigma(2, v) == 35, "sigma2 mismatched");
         ASSERT(Sigma(3, v) == 50, "sigma3 mismatched");
         ASSERT(Sigma(4, v) == 24, "sigma4 mismatched");
+    }
+
+    UNIT_TEST(Container2) {
+        std::vector<int> v = {1, 2, 3, 4, 5};
+        ASSERT(Sigma(1, v) == 15, "sigma1 mismatched");
+        ASSERT(Sigma(2, v) == 85, "sigma2 mismatched");
+        ASSERT(Sigma(3, v) == 225, "sigma3 mismatched");
+        ASSERT(Sigma(4, v) == 274, "sigma4 mismatched");
     }
 }
 
