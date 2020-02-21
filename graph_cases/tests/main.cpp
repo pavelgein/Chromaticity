@@ -119,6 +119,45 @@ UNIT_TEST(BetweenParts) {
    AssertVectors(answer, graph.GenerateEdgesBetweenComponents(0, 1));
 }
 
+
+UNIT_TEST_SUITE(TestAllEdges) {
+    UNIT_TEST(TwoComponents) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({3, 2});
+        std::vector<TEdge> answer = {
+            TEdge(TVertex(0, 0), TVertex(1, 0)),
+            TEdge(TVertex(0, 0), TVertex(1, 1)),
+            TEdge(TVertex(0, 1), TVertex(1, 0)),
+            TEdge(TVertex(0, 1), TVertex(1, 1)),
+            TEdge(TVertex(0, 2), TVertex(1, 0)),
+            TEdge(TVertex(0, 2), TVertex(1, 1)),
+        };
+
+        AssertVectors(answer, graph.GenerateAllEdges());
+    }
+
+    UNIT_TEST(ThreeComponents) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({2, 2, 2});
+        std::vector<TEdge> answer = {
+            TEdge(TVertex(0, 0), TVertex(1, 0)),
+            TEdge(TVertex(0, 0), TVertex(1, 1)),
+            TEdge(TVertex(0, 1), TVertex(1, 0)),
+            TEdge(TVertex(0, 1), TVertex(1, 1)),
+            TEdge(TVertex(0, 0), TVertex(2, 0)),
+            TEdge(TVertex(0, 0), TVertex(2, 1)),
+            TEdge(TVertex(0, 1), TVertex(2, 0)),
+            TEdge(TVertex(0, 1), TVertex(2, 1)),
+            TEdge(TVertex(1, 0), TVertex(2, 0)),
+            TEdge(TVertex(1, 0), TVertex(2, 1)),
+            TEdge(TVertex(1, 1), TVertex(2, 0)),
+            TEdge(TVertex(1, 1), TVertex(2, 1)),
+        };
+
+        AssertVectors(answer, graph.GenerateAllEdges());
+    }
+}
+
 int main() {
     GetRegistry()->CreateAndRun();
 }

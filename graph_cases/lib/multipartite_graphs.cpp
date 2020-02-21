@@ -170,7 +170,19 @@ std::vector<INT>::const_iterator TCompleteGraph::end() const {
     return Components.end();
 }
 
-TVertex::TVertex()
+std::vector<TEdge> TCompleteGraph::GenerateAllEdges() const {
+    std::vector<TEdge> edges;
+    for (size_t i = 0; i + 1 != ComponentsNumber(); ++i) {
+        for (size_t j = i + 1; j != ComponentsNumber(); ++j) {
+            auto currentEdges = GenerateEdgesBetweenComponents(i, j);
+            edges.insert(edges.end(), currentEdges.begin(), currentEdges.end());
+        }
+    }
+
+    return edges;
+}
+
+    TVertex::TVertex()
     : ComponentId(0)
     , VertexId(0)
     {

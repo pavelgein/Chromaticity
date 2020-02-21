@@ -50,7 +50,11 @@ public:
     size_t ComponentsNumber() const;
 
     std::vector<TEdge> GenerateEdgesBetweenComponents(size_t first, size_t second) const;
+
+    std::vector<TEdge> GenerateAllEdges() const;
+
     std::vector<INT>::const_iterator begin() const;
+
     std::vector<INT>::const_iterator end() const;
 
 private:

@@ -89,7 +89,6 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
 
     INT edge_diff = target_edges - source_edges;
     debug << "Difference: " << edge_diff << std::endl;
-    assert(source.ComponentsNumber() == 3);
 
     INT source_i3 = source.I3Invariant();
     INT target_i3 = target.I3Invariant();
@@ -103,23 +102,13 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
     debug << "Target I4: " << target_i4 << std::endl;
     debug << std::flush;
 
-    std::vector<TEdge> edges12 = target.GenerateEdgesBetweenComponents(0, 1);
-    std::vector<TEdge> edges13 = target.GenerateEdgesBetweenComponents(0, 2);
-    std::vector<TEdge> edges23 = target.GenerateEdgesBetweenComponents(1, 2);
-
-    std::vector<TEdge> all_edges;
-    all_edges.reserve(target_edges);
-    all_edges.insert(all_edges.end(), edges12.begin(), edges12.end());
-    all_edges.insert(all_edges.end(), edges13.begin(), edges13.end());
-    all_edges.insert(all_edges.end(), edges23.begin(), edges23.end());
+    std::vector<TEdge> all_edges = target.GenerateAllEdges();
 
     for (const auto& combination : TChoiceGenerator(all_edges.size(), edge_diff)) {
         TEdgeSet current_edges;
         for (const auto x: combination) {
             current_edges.insert(all_edges[x]);
         }
-
-        assert(current_edges.size() == edge_diff);
 
         PrintCollection(debug, current_edges);
         NMultipartiteGraphs::TDenseGraph newTarget{target, current_edges};
