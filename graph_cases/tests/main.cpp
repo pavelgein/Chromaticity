@@ -1,113 +1,11 @@
 #include "multipartite_graphs.h"
 #include "math_utils.h"
 
+#include "test_system/test_system.h"
+
 #include <string>
 #include <iostream>
 #include <sstream>
-
-class TTestRegistry;
-TTestRegistry* GetRegistry();
-
-class ITest {
-public:
-    ITest();
-    virtual void Run() const = 0;
-    virtual ~ITest() = default;
-    std::string GetName() {
-        auto prefix = GetPrefix();
-        if (prefix.empty()) {
-            return GetLocalName();
-        }
-
-        return prefix + "::" + GetLocalName();
-    };
-    virtual std::string GetPrefix() {
-        return "";
-    };
-
-    virtual std::string GetLocalName() const = 0;
-};
-
-
-class TTestFail : public std::exception {
-private:
-    std::string Message;
-public:
-    TTestFail(std::string message)
-        : Message(std::move(message))
-    {
-    }
-
-    const char * what() const noexcept override {
-        return Message.c_str();
-    }
-};
-
-#define FAIL(msg) throw TTestFail(msg)
-#define ASSERT(__cond, __msg) do {\
-    if (!(__cond)) {\
-        FAIL((std::stringstream() << "Condition " << #__cond << " failed: " << __msg).str()); \
-    } \
-} while(0)
-
-
-struct TTestRunStat {
-    int Success = 0;
-    int Failed = 0;
-    int Crashed = 0;
-};
-
-class TTestRegistry {
-public:
-    TTestRegistry() = default;
-
-    TTestRegistry& Add(ITest* test) {
-        Tests.push_back(test);
-        return *this;
-    }
-
-    void RunAll() {
-        TTestRunStat stat;
-        for (auto test: Tests) {
-            Run(test, stat);
-        }
-
-        std::cerr << "**************************" << std::endl;
-        std::cerr << " * Success: " << stat.Success << std::endl;
-        std::cerr << " * Failed: " << stat.Failed << std::endl;
-        std::cerr << " * Crashed: " << stat.Crashed << std::endl;
-    }
-
-    void Run(ITest* test, TTestRunStat& stat) {
-        try {
-            test->Run();
-            std::cerr << test->GetName() << " OK\n";
-            stat.Success++;
-        } catch (const TTestFail& fail) {
-            std::cerr << test->GetName() << " Failed: " << fail.what() << std::endl;
-            stat.Failed++;
-        } catch (...) {
-            std::cerr << test->GetName() << " Crashed " << std::endl;
-            stat.Crashed++;
-        }
-    }
-
-private:
-    std::vector<ITest*> Tests;
-};
-
-ITest::ITest() {
-    GetRegistry()->Add(this);
-}
-
-TTestRegistry* GetRegistry() {
-    static TTestRegistry* registry;
-    if (!registry) {
-        registry = new TTestRegistry();
-    }
-
-    return registry;
-}
 
 #define UNIT_TEST(name) class TTest##name : public ITest {\
 public: \
