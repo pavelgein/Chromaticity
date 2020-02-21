@@ -1,3 +1,5 @@
+#pragma once
+
 #include <exception>
 #include <string>
 #include <sstream>
@@ -11,7 +13,7 @@ struct TTestRunStat {
 
 class ITest {
 public:
-    ITest();
+    ITest() = default;
 
     virtual void Run() const = 0;
 
@@ -36,16 +38,22 @@ public:
 
 class TTestRegistry {
 public:
-    TTestRegistry() = default;
+    using TCreator = std::function<ITest*()>;
 
-    void RunAll();
+    TTestRegistry() = default;
 
     void Run(ITest* test, TTestRunStat& stat);
 
     TTestRegistry& Add(ITest* test);
 
+    void AddCreator(TCreator creator) {
+        Creators.push_back(creator);
+    }
+
+    void CreateAndRun();
+
 private:
-    std::vector<ITest*> Tests;
+    std::vector<TCreator> Creators;
 };
 
 TTestRegistry* GetRegistry();
@@ -73,17 +81,28 @@ public:
 } while(0)
 
 
-#define UNIT_TEST(name) class TTest##name : public ITest {\
-public: \
-    std::string Name; \
-    TTest##name() \
-        : Name(#name) \
-    { \
-    } \
-    void Run() const override; \
-    std::string GetLocalName() const override { return Name;} \
-}; \
-TTest##name test##name{};    \
+#define UNIT_TEST(name) class TTest##name : public ITest {                        \
+public:                                                                           \
+    std::string Name;                                                             \
+    TTest##name()                                                                 \
+        : Name(#name)                                                             \
+    {                                                                             \
+    }                                                                             \
+    void Run() const override;                                                    \
+    std::string GetLocalName() const override { return Name;}                     \
+    static TTest##name* Create() {                                                \
+        return new TTest##name();                                                 \
+    }                                                                             \
+                                                                                  \
+    struct TRegistrator {                                                         \
+        TRegistrator() {                                                          \
+            GetRegistry()->AddCreator(TTest##name::Create);                       \
+        }                                                                         \
+    };                                                                            \
+                                                                                  \
+    static TRegistrator Registrator;                                              \
+};                                                                                \
+TTest##name::TRegistrator TTest##name::Registrator = TTest##name::TRegistrator(); \
     void TTest##name::Run() const
 
 #define UNIT_TEST_SUITE(name) namespace NTestSuite##name {\

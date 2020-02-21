@@ -3,21 +3,13 @@
 #include <iostream>
 #include <vector>
 
-TTestRegistry& TTestRegistry::Add(ITest* test) {
-    Tests.push_back(test);
-    return *this;
-}
-
-void TTestRegistry::RunAll() {
-    TTestRunStat stat;
-    for (auto test: Tests) {
-        Run(test, stat);
+namespace {
+    void WriteStat(const TTestRunStat& stat, std::ostream& outp) {
+        outp << "**************************" << std::endl;
+        outp << " * Success: " << stat.Success << std::endl;
+        outp << " * Failed: " << stat.Failed << std::endl;
+        outp << " * Crashed: " << stat.Crashed << std::endl;
     }
-
-    std::cerr << "**************************" << std::endl;
-    std::cerr << " * Success: " << stat.Success << std::endl;
-    std::cerr << " * Failed: " << stat.Failed << std::endl;
-    std::cerr << " * Crashed: " << stat.Crashed << std::endl;
 }
 
 void TTestRegistry::Run(ITest* test, TTestRunStat& stat) {
@@ -34,8 +26,15 @@ void TTestRegistry::Run(ITest* test, TTestRunStat& stat) {
     }
 }
 
-ITest::ITest() {
-    GetRegistry()->Add(this);
+void TTestRegistry::CreateAndRun() {
+    TTestRunStat stat;
+    for (const auto& creator: Creators) {
+        ITest* test = creator();
+        Run(test, stat);
+        delete test;
+    }
+
+    WriteStat(stat, std::cerr);
 }
 
 TTestRegistry* GetRegistry() {

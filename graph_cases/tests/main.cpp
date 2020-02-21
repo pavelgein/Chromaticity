@@ -120,5 +120,5 @@ UNIT_TEST(BetweenParts) {
 }
 
 int main() {
-    GetRegistry()->RunAll();
+    GetRegistry()->CreateAndRun();
 }
