@@ -7,31 +7,6 @@
 #include <iostream>
 #include <sstream>
 
-#define UNIT_TEST(name) class TTest##name : public ITest {\
-public: \
-    std::string Name; \
-    TTest##name() \
-        : Name(#name) \
-    { \
-    } \
-    void Run() const override; \
-    std::string GetLocalName() const override { return Name;} \
-}; \
-TTest##name test##name{};    \
-    void TTest##name::Run() const
-
-#define UNIT_TEST_SUITE(name) namespace NTestSuite##name {\
-    class ITest : public ::ITest { \
-    public: \
-        ITest() : ::ITest() {}; \
-        virtual ~ITest() = default; \
-        std::string GetPrefix() override { \
-            return #name; \
-        } \
-    }; \
-}\
-namespace NTestSuite##name
-
 UNIT_TEST(Simple) {
     using namespace NMultipartiteGraphs;
 
