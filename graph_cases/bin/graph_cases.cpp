@@ -42,12 +42,12 @@ void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet&
 void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp) {
     PrintCollection(outp, target.DeletedEdges());
     INT i3_new = target.I3Invariant();
-    outp << "I3:" << i3_new << " ";
+    auto i4_new = target.I4Invariant();
+
+    outp << "I3: " << i3_new << " I4: " << i4_new;
     if (i3_new != source.I3Invariant()) {
-        outp << "Answer: No Reason: I3";
+        outp << " Answer: No Reason: I3";
     } else {
-        auto i4_new = target.I4Invariant();
-        outp << "I4: " << i4_new << " ";
         if (i4_new == source.I4Invariant()) {
             outp << " Answer: Yes";
         } else {
