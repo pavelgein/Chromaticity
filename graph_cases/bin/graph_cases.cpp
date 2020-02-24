@@ -11,12 +11,7 @@
 #include "utils/print.h"
 #include "queue/queue.h"
 
-typedef NMultipartiteGraphs::TEdge TEdge;
-using TGraph = NMultipartiteGraphs::TCompleteGraph;
-typedef std::unordered_set<TEdge> TEdgeSet;
-
-
-void WriteEdgeStat(size_t componentsNumber, const TEdgeSet& edgeSet, std::ostream& outp) {
+void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet& edgeSet, std::ostream& outp) {
     std::vector<std::vector<int>> edgeStat{};
     for (size_t i = 0; i != componentsNumber; ++i) {
         edgeStat.push_back(std::vector<int>(componentsNumber, 0));
@@ -66,7 +61,7 @@ void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, co
 }
 
 
-void thread_func(const TGraph& source, std::ostream& outp, TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph>& queue, std::atomic<bool>& alive) {
+void thread_func(const NMultipartiteGraphs::TCompleteGraph& source, std::ostream& outp, TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph>& queue, std::atomic<bool>& alive) {
     NMultipartiteGraphs::TDenseGraph target;
     while (alive) {
         if (queue.Pop(std::chrono::seconds(1), target)) {
@@ -81,7 +76,7 @@ void thread_func(const TGraph& source, std::ostream& outp, TMultiThreadQueue<NMu
     std::cerr << "exit from" << std::this_thread::get_id() << std::endl;
 }
 
-void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream& debug=std::cout) {
+void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target, std::ostream& debug=std::cout) {
     debug << "Checking graphs" << std::endl;
     debug << "Source: " << source << std::endl;
     debug << "Target: " << target << std::endl;
@@ -141,7 +136,7 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
     debug << "Target I4: " << target_i4 << std::endl;
     debug << std::flush;
 
-    std::vector<TEdge> all_edges = target.GenerateAllEdges();
+    std::vector<NMultipartiteGraphs::TEdge> all_edges = target.GenerateAllEdges();
 
     TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph> queue(1000);
     std::atomic<bool> alive = true;
@@ -152,7 +147,7 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
 
     size_t done = 0;
     for (const auto& combination : TChoiceGenerator(all_edges.size(), edge_diff)) {
-        TEdgeSet current_edges;
+        NMultipartiteGraphs::TEdgeSet current_edges;
         for (const auto x: combination) {
             current_edges.insert(all_edges[x]);
         }
@@ -179,8 +174,8 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
 }
 
 int main(void) {
-    TGraph graph{7, 2, 2};
-    TGraph graph2{4, 4, 3};
+    NMultipartiteGraphs::TCompleteGraph graph{7, 2, 2};
+    NMultipartiteGraphs::TCompleteGraph graph2{4, 4, 3};
     compare_two_graphs(graph, graph2);
     return 0;
 }
