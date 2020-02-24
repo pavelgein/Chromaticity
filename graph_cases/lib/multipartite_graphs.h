@@ -42,7 +42,14 @@ public:
     TCompleteGraph(const std::initializer_list<INT>& components);
 
     template<class TInputIterator>
-    TCompleteGraph(TInputIterator begin, TInputIterator end);
+    TCompleteGraph(TInputIterator begin, TInputIterator end)
+        : Components(begin, end)
+        , I3Invariant_(0)
+        , I4Invariant_(0)
+        , Edges_(Sigma(2, Components))
+    {
+    }
+
 
     virtual INT VerticesCount() const override;
     virtual INT I2Invariant() const override;

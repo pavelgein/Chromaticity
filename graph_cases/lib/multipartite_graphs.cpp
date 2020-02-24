@@ -86,15 +86,6 @@ TCompleteGraph::TCompleteGraph(const std::initializer_list<INT>& components)
     {
     }
 
-template<class TInputIterator>
-TCompleteGraph::TCompleteGraph(TInputIterator begin, TInputIterator end)
-    : Components(begin, end)
-    , I3Invariant_(0)
-    , I4Invariant_(0)
-    , Edges_(Sigma(2, Components))
-    {
-    }
-
 INT TCompleteGraph::I2Invariant() const {
     return Edges_;
 }

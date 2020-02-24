@@ -73,10 +73,13 @@ void thread_func(const NMultipartiteGraphs::TCompleteGraph& source, std::ostream
         }
     }
 
-    std::cerr << "exit from" << std::this_thread::get_id() << std::endl;
+    std::stringstream msg;
+    msg << "exit from" << std::this_thread::get_id() << std::endl;
+    std::cerr << msg.str();
 }
 
-void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target, std::ostream& debug=std::cout) {
+void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target,
+                        std::ostream& debug, int threadCount) {
     debug << "Checking graphs" << std::endl;
     debug << "Source: " << source << std::endl;
     debug << "Target: " << target << std::endl;
@@ -141,7 +144,7 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
     TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph> queue(1000);
     std::atomic<bool> alive = true;
     std::vector<std::thread> workers;
-    for (size_t i = 0; i != 6; ++i) {
+    for (int i = 0; i != threadCount; ++i) {
         workers.emplace_back(thread_func, std::cref(source), std::ref(debug), std::ref(queue), std::ref(alive));
     }
 
@@ -173,9 +176,72 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
     }
 }
 
-int main(void) {
-    NMultipartiteGraphs::TCompleteGraph graph{7, 2, 2};
-    NMultipartiteGraphs::TCompleteGraph graph2{4, 4, 3};
-    compare_two_graphs(graph, graph2);
+class TBadOptionException : public std::invalid_argument {
+public:
+    TBadOptionException(const char* msg)
+        : std::invalid_argument(msg)
+    {
+    }
+
+    TBadOptionException(const std::string& msg)
+        : std::invalid_argument(msg)
+    {
+    }
+};
+
+
+struct TOptions {
+    std::vector<INT> Source;
+    std::vector<INT> Target;
+    int ThreadCount = 6;
+
+    static TOptions ParseCommandLineArguments(int argc, const char ** argv) {
+        TOptions opts;
+        int optNum = 1;
+        while (optNum < argc) {
+           const char * currentOption = argv[optNum];
+           if (currentOption[0] != '-') {
+               throw TBadOptionException("no free arguments");
+           }
+
+           if (strlen(currentOption) < 2) {
+               throw TBadOptionException((std::stringstream() << "bad argument " << currentOption).str());
+           }
+
+           if (currentOption[1] == 's') {
+               ++optNum;
+               while (optNum < argc && argv[optNum][0] != '-') {
+                   opts.Source.push_back( std::atoi(argv[optNum]));
+                   optNum++;
+               }
+           } else if (currentOption[1] == 't') {
+               ++optNum;
+               while (optNum < argc && argv[optNum][0] != '-') {
+                   opts.Target.push_back(std::atoi(argv[optNum]));
+                   optNum++;
+               }
+           } else if (currentOption[1] == '-') {
+               if (strcmp(currentOption, "--thread-count") == 0) {
+                   optNum++;
+                   if (optNum >= argc) {
+                       throw TBadOptionException("expected number after thread-count");
+                   }
+                   opts.ThreadCount = std::atoi(argv[optNum]);
+                   optNum++;
+               } else {
+                   throw TBadOptionException((std::stringstream() << "unknown option " << currentOption).str());
+               }
+           }
+        }
+
+        return opts;
+    }
+};
+
+int main(int argc, const char ** argv) {
+    TOptions opts = TOptions::ParseCommandLineArguments(argc, argv);
+    NMultipartiteGraphs::TCompleteGraph source(opts.Source.begin(), opts.Source.end());
+    NMultipartiteGraphs::TCompleteGraph target(opts.Target.begin(), opts.Target.end());
+    compare_two_graphs(source, target, std::cout, opts.ThreadCount);
     return 0;
 }
