@@ -2,11 +2,14 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
-#include <cassert>
+#include <thread>
+#include <chrono>
+#include <sstream>
 
 #include "local_types.h"
 #include "multipartite_graphs.h"
 #include "utils/print.h"
+#include "queue/queue.h"
 
 typedef NMultipartiteGraphs::TEdge TEdge;
 using TGraph = NMultipartiteGraphs::TCompleteGraph;
@@ -41,6 +44,42 @@ void WriteEdgeStat(size_t componentsNumber, const TEdgeSet& edgeSet, std::ostrea
     }
 }
 
+void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp) {
+    PrintCollection(outp, target.DeletedEdges());
+    INT i3_new = target.I3Invariant();
+    outp << "I3:" << i3_new << " ";
+    if (i3_new != source.I3Invariant()) {
+        outp << "Answer: No Reason: I3";
+    } else {
+        auto i4_new = target.I4Invariant();
+        outp << "I4: " << i4_new << " ";
+        if (i4_new == source.I4Invariant()) {
+            outp << " Answer: Yes";
+        } else {
+            outp << " Answer: No Reason: I4";
+        }
+    }
+
+    outp << " ";
+    WriteEdgeStat(source.ComponentsNumber(), target.DeletedEdges(), outp);
+    outp << std::endl;
+}
+
+
+void thread_func(const TGraph& source, std::ostream& outp, TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph>& queue, std::atomic<bool>& alive) {
+    NMultipartiteGraphs::TDenseGraph target;
+    while (alive) {
+        if (queue.Pop(std::chrono::seconds(1), target)) {
+            std::stringstream ss;
+            CompareSourceAndDense(source, target, ss);
+            outp << ss.str();
+        } else {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }
+
+    std::cerr << "exit from" << std::this_thread::get_id() << std::endl;
+}
 
 void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream& debug=std::cout) {
     debug << "Checking graphs" << std::endl;
@@ -104,35 +143,40 @@ void compare_two_graphs(const TGraph& source, const TGraph& target, std::ostream
 
     std::vector<TEdge> all_edges = target.GenerateAllEdges();
 
+    TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph> queue(1000);
+    std::atomic<bool> alive = true;
+    std::vector<std::thread> workers;
+    for (size_t i = 0; i != 6; ++i) {
+        workers.emplace_back(thread_func, std::cref(source), std::ref(debug), std::ref(queue), std::ref(alive));
+    }
+
+    size_t done = 0;
     for (const auto& combination : TChoiceGenerator(all_edges.size(), edge_diff)) {
         TEdgeSet current_edges;
         for (const auto x: combination) {
             current_edges.insert(all_edges[x]);
         }
 
-        PrintCollection(debug, current_edges);
         NMultipartiteGraphs::TDenseGraph newTarget{target, current_edges};
-        INT i3_new = newTarget.I3Invariant();
-        debug << "I3:" << i3_new << " ";
-        if (i3_new != source_i3) {
-            debug << "Answer: No Reason: I3";
-        } else {
-            auto i4_new = newTarget.I4Invariant();
-            debug << "I4: " << i4_new << " ";
-            if (i4_new == source_i4) {
-                debug << " Answer: Yes";
-            } else {
-                debug << " Answer: No Reason: I4";
-            }
+        queue.Push(std::move(newTarget));
+        done += 1;
+        if (done % 100000 == 0) {
+            std::cerr << "done: " << done << ", queue size: " << queue.Size() << std::endl;
         }
+    }
 
-        debug << " ";
-        WriteEdgeStat(source.ComponentsNumber(), current_edges, debug);
+    std::cerr << "all pushed" << std::endl;
 
-        debug << std::endl;
+    std::mutex m;
+    std::unique_lock<std::mutex> lock(m);
+    auto& cond = queue.Empty();
+    cond.wait(lock);
+    alive = false;
+
+    for (auto& worker : workers) {
+        worker.join();
     }
 }
-
 
 int main(void) {
     TGraph graph{7, 2, 2};

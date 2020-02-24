@@ -217,8 +217,8 @@ bool TEdge::operator==(const TEdge& other) const {
 }
 
 
-TDenseGraph::TDenseGraph(TCompleteGraph graph, TEdgeSet edgeSet)
-    : Graph(std::move(graph))
+TDenseGraph::TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet)
+    : Graph(&graph)
     , EdgeSet(std::move(edgeSet))
     {
     }
@@ -226,20 +226,20 @@ TDenseGraph::TDenseGraph(TCompleteGraph graph, TEdgeSet edgeSet)
 
 
 INT TDenseGraph::VerticesCount() const {
-    return SumRange(Graph.begin(), Graph.end());
+    return SumRange(Graph->begin(), Graph->end());
 }
 
 INT TDenseGraph::I2Invariant() const {
-    return Graph.I2Invariant() - EdgeSet.size();
+    return Graph->I2Invariant() - EdgeSet.size();
 }
 
 INT TDenseGraph::I3Invariant() const {
-    if (Graph.ComponentsNumber() < 3) {
+    if (Graph->ComponentsNumber() < 3) {
         return 0;
     }
 
     if (I3Invariant_ == 0) {
-        I3Invariant_ = Graph.I3Invariant() - ComputeXi1() + ComputeXi2AndXi3();
+        I3Invariant_ = Graph->I3Invariant() - ComputeXi1() + ComputeXi2AndXi3();
     }
 
     return I3Invariant_;
@@ -248,22 +248,22 @@ INT TDenseGraph::I3Invariant() const {
 
 INT TDenseGraph::ComputeXi1() const {
    INT ans = 0;
-   INT totalVertices = Graph.VerticesCount();
+   INT totalVertices = Graph->VerticesCount();
    for (const auto& edge: EdgeSet) {
         auto firstComponent = edge.First.ComponentId;
         auto secondComponent = edge.Second.ComponentId;
-        ans += totalVertices - Graph.ComponentSize(firstComponent) - Graph.ComponentSize(secondComponent);
+        ans += totalVertices - Graph->ComponentSize(firstComponent) - Graph->ComponentSize(secondComponent);
    }
    return ans;
 }
 
 
 std::vector<INT>::const_iterator TDenseGraph::begin() const {
-    return Graph.begin();
+    return Graph->begin();
 }
 
 std::vector<INT>::const_iterator TDenseGraph::end() const {
-    return Graph.end();
+    return Graph->end();
 }
 
 INT TDenseGraph::ComputeXi2AndXi3() const {
@@ -294,10 +294,10 @@ INT TDenseGraph::I4Invariant() const {
 
 INT TDenseGraph::ComputeI4TwoParts() const {
     INT answer = 0;
-    for (const auto [firstComponent, secondComponent] : TPairGenerator(Graph.ComponentsNumber())) {
+    for (const auto [firstComponent, secondComponent] : TPairGenerator(Graph->ComponentsNumber())) {
         assert(firstComponent < secondComponent);
-        const auto firstComponentSize = Graph.ComponentSize(firstComponent);
-        const auto secondComponentSize = Graph.ComponentSize(secondComponent);
+        const auto firstComponentSize = Graph->ComponentSize(firstComponent);
+        const auto secondComponentSize = Graph->ComponentSize(secondComponent);
         for (const auto [firstCompFirstVertex, firstCompSecondVertex] : TPairGenerator(firstComponentSize)) {
            auto v11 = TVertex(firstComponent, firstCompFirstVertex);
            auto v12 = TVertex(firstComponent, firstCompSecondVertex);
@@ -322,21 +322,21 @@ INT TDenseGraph::ComputeI4TwoParts() const {
 
 INT TDenseGraph::ComputeI4ThreeParts() const {
     INT answer = 0;
-    for (const auto [leftComponent, rightComponent] : TPairGenerator(Graph.ComponentsNumber())) {
-        for (size_t leftIndex = 0; leftIndex != Graph.ComponentSize(leftComponent); ++leftIndex) {
+    for (const auto [leftComponent, rightComponent] : TPairGenerator(Graph->ComponentsNumber())) {
+        for (size_t leftIndex = 0; leftIndex != Graph->ComponentSize(leftComponent); ++leftIndex) {
             auto leftVertex = TVertex(leftComponent, leftIndex);
-            for (size_t rightIndex = 0; rightIndex != Graph.ComponentSize(rightComponent); ++rightIndex) {
+            for (size_t rightIndex = 0; rightIndex != Graph->ComponentSize(rightComponent); ++rightIndex) {
                 auto rightVertex = TVertex(rightComponent, rightIndex);
                 if (!IsEdgeDeleted(TEdge(leftVertex, rightVertex))) {
                     continue;
                 }
 
-                for (size_t middleComponent = 0; middleComponent != Graph.ComponentsNumber(); ++middleComponent) {
+                for (size_t middleComponent = 0; middleComponent != Graph->ComponentsNumber(); ++middleComponent) {
                    if ((middleComponent == leftComponent) || (middleComponent == rightComponent)) {
                        continue;
                    }
 
-                   for (const auto [firstMiddle, secondMiddle] : TPairGenerator(Graph.ComponentSize(middleComponent))) {
+                   for (const auto [firstMiddle, secondMiddle] : TPairGenerator(Graph->ComponentSize(middleComponent))) {
                        auto firstMiddleVertex = TVertex(middleComponent, firstMiddle);
                        auto secondMiddleVertex = TVertex(middleComponent, secondMiddle);
                        auto edge1 = TEdge(leftVertex, firstMiddleVertex);
@@ -354,6 +354,12 @@ INT TDenseGraph::ComputeI4ThreeParts() const {
     }
 
     return answer;
+}
+
+TDenseGraph::TDenseGraph(const TDenseGraph& other)
+    : Graph(other.Graph)
+    , EdgeSet(other.EdgeSet)
+{
 }
 }
 

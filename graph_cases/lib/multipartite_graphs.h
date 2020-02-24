@@ -30,10 +30,15 @@ public:
     virtual INT I2Invariant() const=0;
     virtual INT I3Invariant() const=0;
     virtual INT I4Invariant() const=0;
+    virtual ~IGraph() = default;
 };
 
 class TCompleteGraph: public IGraph {
 public:
+    TCompleteGraph() = default;
+
+    TCompleteGraph(TCompleteGraph&& other) = default;
+
     TCompleteGraph(const std::initializer_list<INT>& components);
 
     template<class TInputIterator>
@@ -99,7 +104,18 @@ using TEdgeSet = std::unordered_set<TEdge>;
  */
 class TDenseGraph : public IGraph {
 public:
-    TDenseGraph(const TCompleteGraph graph, TEdgeSet edgeSet);
+    TDenseGraph() = default;
+
+    TDenseGraph(TDenseGraph&& other) = default;
+
+    TDenseGraph(const TDenseGraph& other);
+
+    void operator=(TDenseGraph&& other) {
+        Graph = other.Graph;
+        EdgeSet = other.EdgeSet;
+    }
+
+    TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet);
 
     virtual INT VerticesCount() const override;
     virtual INT I2Invariant() const override;
@@ -113,12 +129,18 @@ public:
     std::vector<INT>::const_iterator begin() const;
     std::vector<INT>::const_iterator end() const;
 
+    const TEdgeSet& DeletedEdges() const {
+        return EdgeSet;
+    }
+
     bool IsEdgeDeleted(const TEdge& edge) const {
         return EdgeSet.find(edge) != EdgeSet.end();
     }
 
+    ~TDenseGraph() override = default;
+
 private:
-    TCompleteGraph Graph;
+    const TCompleteGraph* Graph;
     TEdgeSet EdgeSet;
 
     mutable INT Vertices_ = 0;
