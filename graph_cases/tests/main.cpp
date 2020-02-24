@@ -4,27 +4,7 @@
 #include "test_system/test_system.h"
 
 #include <string>
-#include <iostream>
 #include <sstream>
-
-UNIT_TEST(Simple) {
-    using namespace NMultipartiteGraphs;
-
-    TEdgeSet edges = {
-        TEdge(TVertex(0, 1), TVertex(1, 0))
-    };
-
-    auto completeGraph = TCompleteGraph({3, 3, 3});
-    TDenseGraph graph(completeGraph, edges);
-
-    ASSERT(completeGraph.I2Invariant() == 27, "i2 invariant mismatched");
-    ASSERT(completeGraph.I3Invariant() == 27, "i2 invariant mismatched");
-    ASSERT(completeGraph.I4Invariant() == 27, "i2 invariant mismatched");
-
-    ASSERT(graph.I2Invariant() == 26, "i2 invariant mismatched");
-    ASSERT(graph.I3Invariant() == 24, "i3 invariant mismatched");
-    ASSERT(graph.I4Invariant() == 26, "i4 invariant mismatched");
-}
 
 UNIT_TEST_SUITE(Sigma) {
     UNIT_TEST(Iterators) {
@@ -155,6 +135,59 @@ UNIT_TEST_SUITE(TestAllEdges) {
         };
 
         AssertVectors(answer, graph.GenerateAllEdges());
+    }
+}
+
+UNIT_TEST_SUITE(Invariants) {
+    UNIT_TEST(TestOneEdge) {
+        using namespace NMultipartiteGraphs;
+
+        TEdgeSet edges = {
+            TEdge(TVertex(0, 1), TVertex(1, 0))
+        };
+
+        auto completeGraph = TCompleteGraph({3, 3, 3});
+        TDenseGraph graph(completeGraph, edges);
+
+        ASSERT(completeGraph.I2Invariant() == 27, "i2 invariant mismatched");
+        ASSERT(completeGraph.I3Invariant() == 27, "i2 invariant mismatched");
+        ASSERT(completeGraph.I4Invariant() == 27, "i2 invariant mismatched");
+
+        ASSERT(graph.I2Invariant() == 26, "i2 invariant mismatched");
+        ASSERT(graph.I3Invariant() == 24, "i3 invariant mismatched");
+        ASSERT(graph.I4Invariant() == 26, "i4 invariant mismatched");
+    }
+
+    UNIT_TEST(TestTwoEdges) {
+        using namespace NMultipartiteGraphs;
+
+        TEdgeSet edges = {
+            TEdge(TVertex(0, 1), TVertex(1, 0)),
+            TEdge(TVertex(0, 1), TVertex(1, 1))
+        };
+
+        auto completeGraph = TCompleteGraph({3, 3, 3});
+        TDenseGraph graph(completeGraph, edges);
+
+        ASSERT(graph.I2Invariant() == 25, "i2 invariant mismatched");
+        ASSERT(graph.I3Invariant() == 21, "i3 invariant mismatched");
+        ASSERT(graph.I4Invariant() == 27, "i4 invariant mismatched");
+    }
+
+    UNIT_TEST(TestXi2) {
+        using namespace NMultipartiteGraphs;
+
+        TEdgeSet edges = {
+            TEdge(TVertex(0, 1), TVertex(1, 0)),
+            TEdge(TVertex(1, 0), TVertex(2, 0))
+        };
+
+        auto completeGraph = TCompleteGraph({3, 3, 3});
+        TDenseGraph graph(completeGraph, edges);
+
+        ASSERT(graph.I2Invariant() == 25, "i2 invariant mismatched");
+        ASSERT(graph.I3Invariant() == 22, "i3 invariant mismatched");
+        ASSERT(graph.I4Invariant() == 21, "i4 invariant mismatched");
     }
 }
 
