@@ -166,6 +166,7 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
     std::cerr << "all pushed" << std::endl;
 
     queue.WaitEmpty();
+    alive = false;
     for (auto& worker : workers) {
         if (worker.joinable()) {
             worker.join();
