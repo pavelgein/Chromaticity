@@ -5,11 +5,13 @@
 #include <thread>
 #include <chrono>
 
+#include <iostream>
+
 template<typename TType>
 class TMultiThreadQueue {
 public:
     TMultiThreadQueue(size_t maxSize = 0)
-            : MaxSize(maxSize)
+        : MaxSize(maxSize)
     {
     }
 
@@ -42,9 +44,7 @@ public:
             while (Storage.size() >= MaxSize) {
                 Pushable.wait(lock);
             }
-        } else {
-            lock.lock();
-        }
+        };
 
         Storage.push_back(std::move(item));
         NonEmpty.notify_one();
@@ -60,6 +60,7 @@ public:
 
 private:
     void DoPop(TType& result){
+        assert(!Storage.empty() && "empty storage");
         result = std::move(Storage.front());
         Storage.pop_front();
         if (Storage.empty()) {
