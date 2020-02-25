@@ -119,7 +119,8 @@ public:
 
     void operator=(TDenseGraph&& other) {
         Graph = other.Graph;
-        EdgeSet = other.EdgeSet;
+        EdgeSet = std::move(other.EdgeSet);
+        other.Graph = nullptr;
     }
 
     TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet);

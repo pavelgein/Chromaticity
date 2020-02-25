@@ -209,7 +209,7 @@ struct TOptions {
            if (currentOption[1] == 's') {
                ++optNum;
                while (optNum < argc && argv[optNum][0] != '-') {
-                   opts.Source.push_back( std::atoi(argv[optNum]));
+                   opts.Source.push_back(std::atoi(argv[optNum]));
                    optNum++;
                }
            } else if (currentOption[1] == 't') {
