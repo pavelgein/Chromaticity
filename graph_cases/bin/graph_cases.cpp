@@ -155,7 +155,7 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
             current_edges.insert(all_edges[x]);
         }
 
-        NMultipartiteGraphs::TDenseGraph newTarget{target, current_edges};
+        NMultipartiteGraphs::TDenseGraph newTarget{target, std::move(current_edges)};
         queue.Push(std::move(newTarget));
         done += 1;
         if (done % 100000 == 0) {
