@@ -193,6 +193,50 @@ UNIT_TEST_SUITE(Invariants) {
     }
 }
 
+struct TSimpleStruct {
+    std::string S;
+    int I;
+
+    TSimpleStruct(int i)
+        : S('a', i)
+        , I(i)
+    {
+    }
+
+    TSimpleStruct(const TSimpleStruct& other)
+        : S(other.S)
+        , I(other.I)
+    {
+    }
+
+    TSimpleStruct()
+        : TSimpleStruct(0)
+    {
+    }
+
+    TSimpleStruct& operator=(TSimpleStruct&& other) {
+       S = std::move(other.S);
+       I = other.I;
+       return *this;
+    }
+
+    TSimpleStruct(TSimpleStruct&& other) = default;
+
+    bool operator==(const TSimpleStruct& other) const {
+        return (S == other.S) && (I == other.I);
+    }
+};
+
+namespace std {
+template<>
+struct hash<TSimpleStruct> {
+    size_t operator()(const TSimpleStruct& s) const {
+        return std::hash<std::string>()(s.S);
+    }
+};
+}
+
+
 UNIT_TEST_SUITE(Queue) {
     template<typename T>
     void thread_func(std::unordered_set<T>& set, std::atomic<bool>& alive, TMultiThreadQueue<T>& queue, std::mutex& m) {
@@ -255,6 +299,10 @@ UNIT_TEST_SUITE(Queue) {
 
     UNIT_TEST(Simple) {
         TQueueTester<int> tester(6, 10000, 1000);
+    }
+
+    UNIT_TEST(SimpleStruct) {
+        TQueueTester<TSimpleStruct> tester(6, 10000, 1000);
     }
 }
 
