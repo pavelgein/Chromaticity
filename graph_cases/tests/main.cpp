@@ -271,12 +271,7 @@ UNIT_TEST_SUITE(Queue) {
                 Queue.Push(T{i});
             }
 
-            while (Queue.Size() != 0) {
-                std::mutex m;
-                std::unique_lock lock(m);
-                auto& cond = Queue.Empty();
-                cond.wait(lock);
-            }
+            Queue.WaitEmpty();
             Stop();
 
             ASSERT(Result.size() == static_cast<size_t>(rightBorder), "size mismatch");

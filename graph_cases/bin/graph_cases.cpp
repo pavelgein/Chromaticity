@@ -165,14 +165,11 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
 
     std::cerr << "all pushed" << std::endl;
 
-    std::mutex m;
-    std::unique_lock<std::mutex> lock(m);
-    auto& cond = queue.Empty();
-    cond.wait(lock);
-    alive = false;
-
+    queue.WaitEmpty();
     for (auto& worker : workers) {
-        worker.join();
+        if (worker.joinable()) {
+            worker.join();
+        }
     }
 }
 

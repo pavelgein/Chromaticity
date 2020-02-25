@@ -58,6 +58,13 @@ public:
         return Storage.size();
     }
 
+    void WaitEmpty() {
+        std::unique_lock<std::mutex> lock(Mutex);
+        while (!Storage.empty()) {
+            Empty_.wait(lock);
+        }
+    }
+
 private:
     void DoPop(TType& result){
         assert(!Storage.empty() && "empty storage");
