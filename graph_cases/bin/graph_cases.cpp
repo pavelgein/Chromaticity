@@ -5,11 +5,14 @@
 #include <thread>
 #include <chrono>
 #include <sstream>
+#include <unordered_map>
 
 #include "local_types.h"
 #include "multipartite_graphs.h"
 #include "utils/print.h"
 #include "queue/queue.h"
+#include "optparser/optparser.h"
+
 
 void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet& edgeSet, std::ostream& outp) {
     std::vector<std::vector<int>> edgeStat{};
@@ -174,70 +177,28 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
     }
 }
 
-class TBadOptionException : public std::invalid_argument {
-public:
-    TBadOptionException(const char* msg)
-        : std::invalid_argument(msg)
-    {
-    }
-
-    TBadOptionException(const std::string& msg)
-        : std::invalid_argument(msg)
-    {
-    }
-};
-
-
 struct TOptions {
     std::vector<INT> Source;
     std::vector<INT> Target;
-    int ThreadCount = 6;
+    int ThreadCount;
 
-    static TOptions ParseCommandLineArguments(int argc, const char ** argv) {
+    static TOptions Parse(int argc, const char ** argv) {
         TOptions opts;
-        int optNum = 1;
-        while (optNum < argc) {
-           const char * currentOption = argv[optNum];
-           if (currentOption[0] != '-') {
-               throw TBadOptionException("no free arguments");
-           }
 
-           if (strlen(currentOption) < 2) {
-               throw TBadOptionException((std::stringstream() << "bad argument " << currentOption).str());
-           }
+        TParser parser;
+        parser.AddShortOption('s').AppendTo(&opts.Source).Required(true);
+        parser.AddShortOption('t').AppendTo(&opts.Target).Required(true);
+        parser.AddLongOption("thread-count").Store(&opts.ThreadCount).Default("6");
 
-           if (currentOption[1] == 's') {
-               ++optNum;
-               while (optNum < argc && argv[optNum][0] != '-') {
-                   opts.Source.push_back(std::atoi(argv[optNum]));
-                   optNum++;
-               }
-           } else if (currentOption[1] == 't') {
-               ++optNum;
-               while (optNum < argc && argv[optNum][0] != '-') {
-                   opts.Target.push_back(std::atoi(argv[optNum]));
-                   optNum++;
-               }
-           } else if (currentOption[1] == '-') {
-               if (strcmp(currentOption, "--thread-count") == 0) {
-                   optNum++;
-                   if (optNum >= argc) {
-                       throw TBadOptionException("expected number after thread-count");
-                   }
-                   opts.ThreadCount = std::atoi(argv[optNum]);
-                   optNum++;
-               } else {
-                   throw TBadOptionException((std::stringstream() << "unknown option " << currentOption).str());
-               }
-           }
-        }
+        parser.Parse(argc, argv);
 
         return opts;
     }
 };
 
+
 int main(int argc, const char ** argv) {
-    TOptions opts = TOptions::ParseCommandLineArguments(argc, argv);
+    TOptions opts = TOptions::Parse(argc, argv);
     NMultipartiteGraphs::TCompleteGraph source(opts.Source.begin(), opts.Source.end());
     NMultipartiteGraphs::TCompleteGraph target(opts.Target.begin(), opts.Target.end());
     compare_two_graphs(source, target, std::cout, opts.ThreadCount);
