@@ -6,19 +6,18 @@
 #include <chrono>
 #include <sstream>
 #include <unordered_map>
+#include <fstream>
 
 #include "local_types.h"
 #include "multipartite_graphs.h"
 #include "utils/print.h"
 #include "queue/queue.h"
+#include "executer/executer.h"
 #include "optparser/optparser.h"
 
 
 void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet& edgeSet, std::ostream& outp) {
-    std::vector<std::vector<int>> edgeStat{};
-    for (size_t i = 0; i != componentsNumber; ++i) {
-        edgeStat.push_back(std::vector<int>(componentsNumber, 0));
-    }
+    std::vector<std::vector<int>> edgeStat(componentsNumber, std::vector<int>(componentsNumber, 0));
 
     for (const auto& edge: edgeSet) {
         auto firstComponent = edge.First.ComponentId;
@@ -42,6 +41,58 @@ void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet&
     }
 }
 
+class TWriter {
+public:
+    explicit TWriter(std::ostream& out)
+        : Out(out)
+        , Alive(true)
+        , Queue{1000}
+    {
+        Thread = std::thread{[this](){
+            while (Alive) {
+               std::string s;
+               if (Queue.Pop(std::chrono::seconds(1), s)) {
+                   Write(s);
+               }
+            }
+
+            Flush();
+        }};
+    }
+
+    void Flush() {
+        while (!Queue.IsEmpty()) {
+            Write(Queue.Pop());
+        }
+    }
+
+    void Stop() {
+        Alive = false;
+    }
+
+    void Push(std::string&& tokens) {
+       Queue.Push(std::move(tokens));
+    }
+
+    ~TWriter() {
+        Stop();
+        if (Thread.joinable()) {
+            Thread.join();
+        }
+    }
+
+private:
+    void Write(const std::string& buffer) {
+        Out << buffer;
+    }
+
+    std::ostream& Out;
+    std::atomic<bool> Alive;
+    TMultiThreadQueue<std::string> Queue;
+    std::thread Thread;
+};
+
+
 void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp) {
     PrintCollection(outp, target.DeletedEdges());
     INT i3_new = target.I3Invariant();
@@ -60,26 +111,30 @@ void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, co
 
     outp << " ";
     WriteEdgeStat(source.ComponentsNumber(), target.DeletedEdges(), outp);
-    outp << std::endl;
+    outp << "\n";
 }
 
-
-void thread_func(const NMultipartiteGraphs::TCompleteGraph& source, std::ostream& outp, TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph>& queue, std::atomic<bool>& alive) {
-    NMultipartiteGraphs::TDenseGraph target;
-    while (alive) {
-        if (queue.Pop(std::chrono::seconds(1), target)) {
-            std::stringstream ss;
-            CompareSourceAndDense(source, target, ss);
-            outp << ss.str();
-        } else {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
+class TCompareGraphsTask : public ITask {
+public:
+    TCompareGraphsTask(const NMultipartiteGraphs::TCompleteGraph& source, TWriter& writer, NMultipartiteGraphs::TDenseGraph target)
+        : Source(source)
+        , Target(target)
+        , Writer(writer)
+    {
     }
 
-    std::stringstream msg;
-    msg << "exit from" << std::this_thread::get_id() << std::endl;
-    std::cerr << msg.str();
-}
+    void Do() override {
+        std::stringstream ss;
+        CompareSourceAndDense(Source, Target, ss);
+        ss.flush();
+        Writer.Push(ss.str());
+    }
+
+private:
+    const NMultipartiteGraphs::TCompleteGraph& Source;
+    NMultipartiteGraphs::TDenseGraph Target;
+    TWriter& Writer;
+};
 
 void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target,
                         std::ostream& debug, int threadCount) {
@@ -144,12 +199,9 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
 
     std::vector<NMultipartiteGraphs::TEdge> all_edges = target.GenerateAllEdges();
 
-    TMultiThreadQueue<NMultipartiteGraphs::TDenseGraph> queue(1000);
-    std::atomic<bool> alive = true;
-    std::vector<std::thread> workers;
-    for (int i = 0; i != threadCount; ++i) {
-        workers.emplace_back(thread_func, std::cref(source), std::ref(debug), std::ref(queue), std::ref(alive));
-    }
+    TWriter writer{debug};
+
+    auto executer = CreateExecuter(threadCount, 1000, nullptr);
 
     size_t done = 0;
     for (const auto& combination : TChoiceGenerator(all_edges.size(), edge_diff)) {
@@ -159,28 +211,22 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
         }
 
         NMultipartiteGraphs::TDenseGraph newTarget{target, std::move(current_edges)};
-        queue.Push(std::move(newTarget));
+        executer->Add(std::make_unique<TCompareGraphsTask>(source, writer, std::move(newTarget)));
         done += 1;
         if (done % 100000 == 0) {
-            std::cerr << "done: " << done << ", queue size: " << queue.Size() << std::endl;
+            std::cerr << "done: " << done << ", queue size: " << executer->Size() << std::endl;
         }
     }
 
     std::cerr << "all pushed" << std::endl;
-
-    queue.WaitEmpty();
-    alive = false;
-    for (auto& worker : workers) {
-        if (worker.joinable()) {
-            worker.join();
-        }
-    }
+    executer->Stop();
 }
 
 struct TOptions {
     std::vector<INT> Source;
     std::vector<INT> Target;
     int ThreadCount;
+    std::string OutputFile;
 
     static TOptions Parse(int argc, const char ** argv) {
         TOptions opts;
@@ -189,6 +235,7 @@ struct TOptions {
         parser.AddShortOption('s').AppendTo(&opts.Source).Required(true);
         parser.AddShortOption('t').AppendTo(&opts.Target).Required(true);
         parser.AddLongOption("thread-count").Store(&opts.ThreadCount).Default("6");
+        parser.AddLongOption("output-file").Store(&opts.OutputFile).Default("");
 
         parser.Parse(argc, argv);
 
@@ -201,6 +248,18 @@ int main(int argc, const char ** argv) {
     TOptions opts = TOptions::Parse(argc, argv);
     NMultipartiteGraphs::TCompleteGraph source(opts.Source.begin(), opts.Source.end());
     NMultipartiteGraphs::TCompleteGraph target(opts.Target.begin(), opts.Target.end());
-    compare_two_graphs(source, target, std::cout, opts.ThreadCount);
+
+    std::unique_ptr<std::ofstream> out(nullptr);
+    if (!opts.OutputFile.empty()) {
+        out = std::make_unique<std::ofstream>();
+        out->open(opts.OutputFile);
+    }
+
+    compare_two_graphs(source, target, out ? *out : std::cout, opts.ThreadCount);
+    if (out) {
+        out->flush();
+        out->close();
+    }
+
     return 0;
 }

@@ -191,6 +191,52 @@ UNIT_TEST_SUITE(Invariants) {
         ASSERT(graph.I3Invariant() == 22, "i3 invariant mismatched");
         ASSERT(graph.I4Invariant() == 21, "i4 invariant mismatched");
     }
+
+    UNIT_TEST(TextXi2_2) {
+        using namespace NMultipartiteGraphs;
+
+        TEdgeSet edges = {
+            TEdge(TVertex(0, 1), TVertex(1, 0)),
+            TEdge(TVertex(0, 1), TVertex(1, 1)),
+            TEdge(TVertex(0, 1), TVertex(1, 2)),
+            TEdge(TVertex(0, 2), TVertex(1, 0)),
+            TEdge(TVertex(0, 2), TVertex(1, 1)),
+            TEdge(TVertex(0, 2), TVertex(1, 2)),
+            TEdge(TVertex(0, 0), TVertex(1, 0)),
+            TEdge(TVertex(1, 3), TVertex(2, 3)),
+        };
+
+        auto completeGraph = TCompleteGraph({4, 4, 3});
+        TDenseGraph graph(completeGraph, edges);
+
+        ASSERT(graph.I2Invariant() == 32, "i2 invariant mismatched");
+        ASSERT(graph.I3Invariant() == 23, "i3 invariatn mismatched");
+    }
+
+    UNIT_TEST(TextXi2_3) {
+        using namespace NMultipartiteGraphs;
+
+        TEdgeSet edges = {
+            TEdge(TVertex(0, 0), TVertex(1, 0)),
+            TEdge(TVertex(0, 1), TVertex(1, 0)),
+
+            TEdge(TVertex(0, 2), TVertex(1, 1)),
+            TEdge(TVertex(0, 3), TVertex(1, 1)),
+
+            TEdge(TVertex(1, 0), TVertex(2, 0)),
+            TEdge(TVertex(1, 0), TVertex(2, 1)),
+
+            TEdge(TVertex(1, 1), TVertex(2, 1)),
+            TEdge(TVertex(1, 1), TVertex(2, 2)),
+        };
+
+        auto completeGraph = TCompleteGraph({4, 4, 3});
+        TDenseGraph graph(completeGraph, edges);
+
+        ASSERT(graph.I2Invariant() == 32, "i2 invariant mismatched");
+        ASSERT(graph.I3Invariant() == 28, "i3 invariatn mismatched");
+
+    }
 }
 
 struct TSimpleStruct {
