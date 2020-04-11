@@ -27,6 +27,9 @@ void FromString(const char * option, unsigned int& k) {
     k = std::atol(option);
 }
 
+void FromString(const char * option, std::string& s) {
+   s = std::string(option);
+}
 
 struct IHandler {
     virtual ~IHandler() = default;
