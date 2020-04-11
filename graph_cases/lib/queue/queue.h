@@ -38,7 +38,7 @@ public:
         return true;
     }
 
-    void Push(TType item) {
+    void Push(TType&& item) {
         std::unique_lock<std::mutex> lock(Mutex);
         if (MaxSize != 0) {
             while (Storage.size() >= MaxSize) {
@@ -50,11 +50,16 @@ public:
         NonEmpty.notify_one();
     }
 
+    inline bool IsEmpty() const {
+        return Storage.empty();
+    }
+
     std::condition_variable& Empty() {
         return Empty_;
     }
 
     size_t Size() const {
+        std::unique_lock<std::mutex> lock(Mutex);
         return Storage.size();
     }
 
@@ -81,7 +86,7 @@ private:
 
     size_t MaxSize;
     std::deque<TType> Storage;
-    std::mutex Mutex;
+    mutable std::mutex Mutex;
     std::condition_variable NonEmpty;
     std::condition_variable Empty_;
     std::condition_variable Pushable;
