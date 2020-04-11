@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
-#include <thread>
 #include <chrono>
 #include <sstream>
 #include <unordered_map>
@@ -11,9 +10,9 @@
 #include "local_types.h"
 #include "multipartite_graphs.h"
 #include "utils/print.h"
-#include "queue/queue.h"
 #include "executer/executer.h"
 #include "optparser/optparser.h"
+#include "multithread_writer/writer.h"
 
 
 void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet& edgeSet, std::ostream& outp) {
@@ -40,58 +39,6 @@ void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet&
         }
     }
 }
-
-class TWriter {
-public:
-    explicit TWriter(std::ostream& out)
-        : Out(out)
-        , Alive(true)
-        , Queue{1000}
-    {
-        Thread = std::thread{[this](){
-            while (Alive) {
-               std::string s;
-               if (Queue.Pop(std::chrono::seconds(1), s)) {
-                   Write(s);
-               }
-            }
-
-            Flush();
-        }};
-    }
-
-    void Flush() {
-        while (!Queue.IsEmpty()) {
-            Write(Queue.Pop());
-        }
-    }
-
-    void Stop() {
-        Alive = false;
-    }
-
-    void Push(std::string&& tokens) {
-       Queue.Push(std::move(tokens));
-    }
-
-    ~TWriter() {
-        Stop();
-        if (Thread.joinable()) {
-            Thread.join();
-        }
-    }
-
-private:
-    void Write(const std::string& buffer) {
-        Out << buffer;
-    }
-
-    std::ostream& Out;
-    std::atomic<bool> Alive;
-    TMultiThreadQueue<std::string> Queue;
-    std::thread Thread;
-};
-
 
 void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp) {
     PrintCollection(outp, target.DeletedEdges());
@@ -135,6 +82,7 @@ private:
     NMultipartiteGraphs::TDenseGraph Target;
     TWriter& Writer;
 };
+
 
 void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target,
                         std::ostream& debug, int threadCount) {

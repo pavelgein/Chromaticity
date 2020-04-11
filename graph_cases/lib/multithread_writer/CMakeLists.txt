@@ -1,0 +1,2 @@
+ADD_LIBRARY(multithread_writer writer.cpp)
+TARGET_LINK_LIBRARIES(multithread_writer executer)
