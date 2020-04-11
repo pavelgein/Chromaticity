@@ -25,3 +25,24 @@ public:
 };
 
 std::unique_ptr<IExecuter> CreateExecuter(size_t threadCount, size_t maxSize, TMultiThreadQueue<std::exception_ptr>* e);
+
+template<typename TFunc>
+class TFunctionTask : public ITask {
+public:
+    explicit TFunctionTask(TFunc&& f)
+        : F(f)
+    {
+    }
+
+    void Do() override {
+        F();
+    }
+
+private:
+    TFunc F;
+};
+
+template<typename F>
+std::unique_ptr<ITask> CreateTask(F&& f) {
+    return std::make_unique<TFunctionTask<F>>(std::move(f));
+}
