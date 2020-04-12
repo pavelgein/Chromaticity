@@ -2,7 +2,7 @@
 
 #include "math_utils.h"
 
-#include <sstream>
+#include <ostream>
 namespace {
 bool IsAdjanced(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
     return (first.First == second.First) ||
@@ -355,16 +355,12 @@ TDenseGraph::TDenseGraph(const TDenseGraph& other)
 }
 
 std::ostream& operator<<(std::ostream& os, const NMultipartiteGraphs::TEdge& edge) {
-    std::stringstream ss;
-    ss << "TEdge(" << edge.First << ", " << edge.Second << ")";
-    os << ss.str();
+    os << "TEdge(" << edge.First << ", " << edge.Second << ")";
     return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const NMultipartiteGraphs::TVertex& node) {
-    std::stringstream ss;
-    ss << "TNode(" << node.ComponentId << ", " << node.VertexId << ")";
-    os << ss.str();
+    os << "TNode(" << node.ComponentId << ", " << node.VertexId << ")";
     return os;
 }
 

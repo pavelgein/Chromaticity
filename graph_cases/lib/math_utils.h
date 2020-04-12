@@ -42,7 +42,7 @@ class TPairGenerator {
 public:
     using TPair = std::pair<size_t, size_t>;
 
-    TPairGenerator(size_t n)
+    explicit TPairGenerator(size_t n)
         : N(n)
     {
     }
