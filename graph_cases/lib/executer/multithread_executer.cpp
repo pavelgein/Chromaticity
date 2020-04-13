@@ -1,9 +1,9 @@
 #include "multithread_executer.h"
 
 TMultiThreadExecuter::TMultiThreadExecuter(size_t threadCount, size_t queueSize, TMultiThreadQueue<std::exception_ptr>* exceptions)
-        : Queue{queueSize}
-        , Threads{}
-        , Exceptions(exceptions)
+    : Queue{queueSize}
+    , Threads{}
+    , Exceptions(exceptions)
 {
     for (size_t i = 0; i != threadCount; ++i) {
         Threads.emplace_back([this](){
