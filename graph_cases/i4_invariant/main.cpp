@@ -86,8 +86,8 @@ struct TTask : public ITask {
     TTask(NMultipartiteGraphs::TDenseGraph&& graph, TResultCollector* collector)
         : Graph(graph)
         , Collector(collector)
-        {
-        }
+    {
+    }
 
     void Do() override {
         Collector->Add(Graph.I4Invariant());
