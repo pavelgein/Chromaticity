@@ -31,6 +31,10 @@ void FromString(const char * option, std::string& s) {
    s = std::string(option);
 }
 
+void FromString(const char * option, unsigned long l) {
+    l = std::atoll(option);
+}
+
 struct IHandler {
     virtual ~IHandler() = default;
 
