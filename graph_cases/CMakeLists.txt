@@ -2,10 +2,19 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.1) # Проверка версии CMake.
 
 PROJECT(graph_cases)
 SET(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-#SET(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -fsanitize=thread -fPIE -pie -g")
-SET(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -O3")
+
 SET(CMAKE_CXX_STANDARD 17)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+IF(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+ENDIF()
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -O2")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -funroll-loops -Ofast")
+SET(CMAKE_CXX_FLAGS_TS "${CMAKE_CXX_FLAGS} -fsanitize=thread -fPIE -pie -g")
+
 
 INCLUDE_DIRECTORIES(lib)
 
