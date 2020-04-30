@@ -21,6 +21,6 @@ script:
   - cd graph_cases
   - mkdir build
   - cd build
-  - cmake -B. -S.. ..
+  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -B. -S.. ..
   - make
   - tests/tests
