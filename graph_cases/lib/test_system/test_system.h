@@ -78,10 +78,12 @@ public:
 };
 
 #define FAIL(msg) throw TTestFail(msg)
-#define ASSERT(__cond, __msg) do {\
-    if (!(__cond)) {\
-        FAIL((std::stringstream() << "Condition " << #__cond << " failed: " << __msg).str()); \
-    } \
+#define ASSERT(__cond, __msg) do {                                                 \
+    if (!(__cond)) {                                                               \
+        std::stringstream ss;                                                      \
+        ss << "Condition " << #__cond << " failed: " << __msg                      \
+        FAIL(ss.str());                                                            \
+    }                                                                              \
 } while(0)
 
 
