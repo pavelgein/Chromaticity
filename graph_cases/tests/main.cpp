@@ -7,7 +7,7 @@
 
 #include <atomic>
 #include <string>
-#include <sstream>
+
 
 UNIT_TEST_SUITE(PairGenerator) {
     UNIT_TEST(Simple) {
@@ -20,9 +20,7 @@ UNIT_TEST_SUITE(PairGenerator) {
 
         size_t i = 0;
         for (auto pair : generator) {
-            std::stringstream ss;
-            ss << "iteration " << i << " failed";
-            ASSERT(pair == answers[i], ss.str());
+            ASSERT(pair == answers[i], "iteration " << i << " failed");
             ++i;
         }
 
@@ -34,9 +32,7 @@ template<typename T>
 void AssertVectors(const std::vector<T>& left, const std::vector<T>& right) {
     ASSERT(left.size() == right.size(), "sizes mismatch");
     for (size_t i = 0; i != left.size(); ++i) {
-        std::stringstream ss;
-        ss << "failed at " << i;
-        ASSERT(left[i] == right[i], ss.str());
+        ASSERT(left[i] == right[i], "failed at " << i);
     }
 }
 
