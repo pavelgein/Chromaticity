@@ -5,8 +5,10 @@
 
 #include "queue/queue.h"
 
+#include <atomic>
 #include <string>
 #include <sstream>
+
 
 UNIT_TEST_SUITE(Sigma) {
     UNIT_TEST(Iterators) {
@@ -45,7 +47,9 @@ UNIT_TEST_SUITE(PairGenerator) {
 
         size_t i = 0;
         for (auto pair : generator) {
-            ASSERT(pair == answers[i], (std::stringstream() << "iteration " << i << "failed").str());
+            std::stringstream ss;
+            ss << "iteration " << i << " failed";
+            ASSERT(pair == answers[i], ss.str());
             ++i;
         }
 
@@ -57,7 +61,9 @@ template<typename T>
 void AssertVectors(const std::vector<T>& left, const std::vector<T>& right) {
     ASSERT(left.size() == right.size(), "sizes mismatch");
     for (size_t i = 0; i != left.size(); ++i) {
-        ASSERT(left[i] == right[i], (std::stringstream() << "failed at " << i).str());
+        std::stringstream ss;
+        ss << "failed at " << i;
+        ASSERT(left[i] == right[i], ss.str());
     }
 }
 
