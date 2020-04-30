@@ -163,5 +163,5 @@ private:
     INT ComputeI4TwoParts() const;
     INT ComputeI4ThreeParts() const;
 };
-};
+}
 
