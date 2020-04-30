@@ -81,7 +81,7 @@ public:
 #define ASSERT(__cond, __msg) do {                                                 \
     if (!(__cond)) {                                                               \
         std::stringstream ss;                                                      \
-        ss << "Condition " << #__cond << " failed: " << __msg                      \
+        ss << "Condition " << #__cond << " failed: " << __msg;                     \
         FAIL(ss.str());                                                            \
     }                                                                              \
 } while(0)
