@@ -3,6 +3,7 @@
 #include "math_utils.h"
 
 #include <ostream>
+
 namespace {
 bool IsAdjanced(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
     return (first.First == second.First) ||
@@ -286,7 +287,6 @@ INT TDenseGraph::I4Invariant() const {
 INT TDenseGraph::ComputeI4TwoParts() const {
     INT answer = 0;
     for (const auto [firstComponent, secondComponent] : TPairGenerator(Graph->ComponentsNumber())) {
-        assert(firstComponent < secondComponent);
         const auto firstComponentSize = Graph->ComponentSize(firstComponent);
         const auto secondComponentSize = Graph->ComponentSize(secondComponent);
         for (const auto [firstCompFirstVertex, firstCompSecondVertex] : TPairGenerator(firstComponentSize)) {
