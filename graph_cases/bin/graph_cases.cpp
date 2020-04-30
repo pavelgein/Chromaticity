@@ -8,7 +8,8 @@
 #include <fstream>
 
 #include "local_types.h"
-#include "multipartite_graphs.h"
+#include "multipartite_graphs/multipartite_graphs.h"
+#include "math_utils/combinatorics.h"
 #include "utils/print.h"
 #include "executer/executer.h"
 #include "optparser/optparser.h"

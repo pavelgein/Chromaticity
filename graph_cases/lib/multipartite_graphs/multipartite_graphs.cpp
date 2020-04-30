@@ -1,6 +1,8 @@
 #include "multipartite_graphs.h"
 
-#include "math_utils.h"
+#include "math_utils/combinatorics.h"
+#include "math_utils/sigma.h"
+#include "math_utils/sum.h"
 
 #include <ostream>
 

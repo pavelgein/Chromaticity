@@ -1,5 +1,7 @@
-#include "multipartite_graphs.h"
-#include "math_utils.h"
+#include "multipartite_graphs/multipartite_graphs.h"
+#include "math_utils/sigma.h"
+#include "math_utils/combinatorics.h"
+#include "math_utils/sum.h"
 
 #include "test_system/test_system.h"
 

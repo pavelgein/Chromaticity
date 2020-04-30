@@ -1,6 +1,7 @@
 #include "optparser/optparser.h"
-#include "multipartite_graphs.h"
 #include "executer/executer.h"
+#include "math_utils/combinatorics.h"
+#include "multipartite_graphs/multipartite_graphs.h"
 #include "multithread_writer/writer.h"
 
 #include <iostream>

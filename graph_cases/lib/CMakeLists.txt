@@ -1,11 +1,6 @@
-ADD_LIBRARY(lib STATIC
-    multipartite_graphs.cpp
-    math_utils.h
-)
-
-TARGET_INCLUDE_DIRECTORIES(lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
 ADD_SUBDIRECTORY(test_system)
 ADD_SUBDIRECTORY(queue)
 ADD_SUBDIRECTORY(executer)
 ADD_SUBDIRECTORY(multithread_writer)
+ADD_SUBDIRECTORY(math_utils)
+ADD_SUBDIRECTORY(multipartite_graphs)

@@ -1,10 +1,12 @@
 #pragma once
 
+#include "local_types.h"
+#include "math_utils/sigma.h"
+
 #include <vector>
 #include <unordered_set>
 
-#include "local_types.h"
-#include "math_utils.h"
+
 
 namespace NMultipartiteGraphs {
 struct TVertex {
