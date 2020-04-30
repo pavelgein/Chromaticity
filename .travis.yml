@@ -1,0 +1,26 @@
+dist: bionic
+sudo: required
+language: cpp
+
+addons:
+  apt:
+    update: true
+    packages:
+      - cmake
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  - BUILD_TYPE=Debug
+  - BUILD_TYPE=Release
+  - BUILD_TYPE=Ts
+
+script:
+  - cd graph_cases
+  - mkdir build
+  - cd build
+  - cmake -B. -S.. ..
+  - make
+  - tests/tests
