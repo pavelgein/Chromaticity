@@ -1,3 +1,4 @@
+#include <cstring>
 #include <deque>
 #include <exception>
 #include <sstream>
@@ -31,7 +32,7 @@ void FromString(const char * option, std::string& s) {
    s = std::string(option);
 }
 
-void FromString(const char * option, unsigned long l) {
+void FromString(const char * option, unsigned long& l) {
     l = std::atoll(option);
 }
 
@@ -237,7 +238,9 @@ private:
                 if (option.HasDefault()) {
                     option.UseDefault();
                 } else if (option.Required_) {
-                    throw TBadOptionException((std::stringstream() << "option " << option.Name << " marked as required  and not set").str());
+                    std::stringstream ss;
+                    ss << "option " << option.Name << " marked as required  and not set";
+                    throw TBadOptionException(ss.str());
 
                 }
             }
