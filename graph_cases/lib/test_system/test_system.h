@@ -4,12 +4,15 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 struct TTestRunStat {
     int Success = 0;
     int Failed = 0;
     int Crashed = 0;
 };
+
+void WriteStat(const TTestRunStat& stat, std::ostream& outp);
 
 class ITest {
 public:
@@ -50,7 +53,7 @@ public:
         Creators.push_back(creator);
     }
 
-    void CreateAndRun();
+    TTestRunStat CreateAndRun();
 
 private:
     std::vector<TCreator> Creators;

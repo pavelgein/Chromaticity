@@ -1,15 +1,12 @@
 #include "test_system.h"
 
-#include <iostream>
 #include <vector>
 
-namespace {
-    void WriteStat(const TTestRunStat& stat, std::ostream& outp) {
-        outp << "**************************" << std::endl;
-        outp << " * Success: " << stat.Success << std::endl;
-        outp << " * Failed: " << stat.Failed << std::endl;
-        outp << " * Crashed: " << stat.Crashed << std::endl;
-    }
+void WriteStat(const TTestRunStat& stat, std::ostream& outp) {
+    outp << "**************************" << std::endl;
+    outp << " * Success: " << stat.Success << std::endl;
+    outp << " * Failed: " << stat.Failed << std::endl;
+    outp << " * Crashed: " << stat.Crashed << std::endl;
 }
 
 void TTestRegistry::Run(ITest* test, TTestRunStat& stat) {
@@ -26,7 +23,7 @@ void TTestRegistry::Run(ITest* test, TTestRunStat& stat) {
     }
 }
 
-void TTestRegistry::CreateAndRun() {
+TTestRunStat TTestRegistry::CreateAndRun() {
     TTestRunStat stat;
     for (const auto& creator: Creators) {
         ITest* test = creator();
@@ -34,7 +31,7 @@ void TTestRegistry::CreateAndRun() {
         delete test;
     }
 
-    WriteStat(stat, std::cerr);
+    return stat;
 }
 
 TTestRegistry* GetRegistry() {

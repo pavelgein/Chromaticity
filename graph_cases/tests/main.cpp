@@ -348,5 +348,8 @@ UNIT_TEST_SUITE(Queue) {
 }
 
 int main() {
-    GetRegistry()->CreateAndRun();
+    TTestRunStat stat = GetRegistry()->CreateAndRun();
+    WriteStat(stat, std::cout);
+    bool success = (stat.Failed == 0) && (stat.Crashed == 0);
+    return success ? 0 : 1;
 }
