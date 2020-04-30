@@ -85,16 +85,16 @@ std::ostream& operator<<(std::ostream& outp, const NMultipartiteGraphs::TComplet
 
 namespace std {
 template<>
-struct std::hash<NMultipartiteGraphs::TVertex> {
-    std::size_t operator()(const NMultipartiteGraphs::TVertex& node) const {
-        return static_cast<std::size_t>(node.ComponentId << 4) ^ (node.VertexId);
+struct hash<NMultipartiteGraphs::TVertex> {
+    size_t operator()(const NMultipartiteGraphs::TVertex& node) const {
+        return static_cast<size_t>(node.ComponentId << 4) ^ (node.VertexId);
     }
 };
 
 
 template<>
 struct hash<NMultipartiteGraphs::TEdge> {
-    std::size_t operator()(const NMultipartiteGraphs::TEdge& edge) const {
+    size_t operator()(const NMultipartiteGraphs::TEdge& edge) const {
         return std::hash<NMultipartiteGraphs::TVertex>()(edge.First) ^
                 std::hash<NMultipartiteGraphs::TVertex>()(edge.Second);
     }
