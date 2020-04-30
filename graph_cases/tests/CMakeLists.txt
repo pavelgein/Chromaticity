@@ -3,6 +3,9 @@ SET(SOURCE_FILES
     test_writer.cpp
     test_executer.cpp
     test_sigma.cpp
+    test_combinatorics.cpp
+    test_multipartite_graphs.cpp
+    test_queue.cpp
 )
 
 SET(LIBRARIES
