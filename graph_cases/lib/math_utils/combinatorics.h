@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <utility>
 #include <vector>
+#include <type_traits>
 
 template<typename TInt>
 TInt c_n_2(TInt n) {
@@ -88,9 +89,9 @@ public:
         using value_type = std::vector<size_t>&;
 
         TIterator(size_t n, size_t k)
-                : N(n)
-                , K(k)
-                , Combination()
+            : N(n)
+            , K(k)
+            , Combination()
         {
             Combination.reserve(K);
             for (size_t i = 0; i != k; ++i) {
@@ -119,6 +120,8 @@ public:
             , Combination(std::move(other.Combination))
         {
         }
+
+        TIterator& operator=(const TIterator& other) = default;
 
         TIterator& operator++() {
             for (size_t i = K; i-- > 0; ) {
@@ -183,11 +186,24 @@ public:
     {
     }
 
+    TChoiceGenerator(const TChoiceGenerator& other) = default;
+
+    TChoiceGenerator& operator=(const TChoiceGenerator& other) {
+        N = other.N;
+        K = other.K;
+        End = TIterator{N, K, GenerateEndCombination(N, K)};
+        return *this;
+    }
+
     TIterator begin() {
         return TIterator(N, K);
     }
 
     const TIterator& end() const {
+        return End;
+    }
+
+    TIterator end() {
         return End;
     }
 
@@ -202,4 +218,91 @@ private:
     size_t N;
     size_t K;
     TIterator End;
+};
+
+namespace std {
+    template<>
+    struct iterator_traits<TChoiceGenerator> {
+        using iterator_category = forward_iterator_tag;
+        using value_type = typename TChoiceGenerator::TIterator::value_type;
+        using pointer = std::add_pointer<std::remove_reference<TChoiceGenerator::TIterator::value_type>::type>::type;
+        using reference = value_type;
+    };
+}
+
+
+template<typename TIteratorType>
+class TObjectChoiceGenerator {
+    using object_type = typename std::iterator_traits<TIteratorType>::value_type;
+
+    public:
+        class TIterator {
+        public:
+            using value_type = std::vector<const object_type*>;
+
+            TIterator(TChoiceGenerator::TIterator indexIterator, const std::vector<const object_type*>& objects)
+                : Objects(objects)
+                , IndexIterator(indexIterator)
+            {
+            }
+
+            TIterator(const TIterator& other) = default;
+
+            TIterator(TIterator&& other) = default;
+
+            const value_type operator*() const {
+                const auto& indices = *IndexIterator;
+                value_type result;
+                result.reserve(indices.size());
+                for (auto index : indices) {
+                    result.push_back(Objects[index]);
+                }
+
+                return result;
+            }
+
+            TIterator& operator++() {
+                ++IndexIterator;
+                return *this;
+            }
+
+            bool operator==(const TIterator& other) const {
+                return (IndexIterator == other.IndexIterator) && ((&Objects) == (&other.Objects));
+            }
+
+            bool operator!=(const TIterator& other) const {
+                return !(*this == other);
+            }
+
+        private:
+            const std::vector<const object_type*>& Objects;
+            TChoiceGenerator::TIterator IndexIterator;
+        };
+
+        TObjectChoiceGenerator(size_t k, TIteratorType begin, TIteratorType end)
+            : Objects(CreateObjects(begin, end))
+            , Generator(Objects.size(), k)
+        {
+        }
+
+        TIterator begin()  {
+            return TIterator(Generator.begin(), Objects);
+        }
+
+        TIterator end() {
+            return TIterator(Generator.end(), Objects);
+        }
+
+    private:
+        static std::vector<const object_type*> CreateObjects(TIteratorType begin, TIteratorType end) {
+            std::vector<const object_type*> result;
+            while (begin != end) {
+                result.push_back(&(*begin));
+                ++begin;
+            }
+            return result;
+        }
+
+        std::vector<const object_type*> Objects;
+        TChoiceGenerator Generator;
 };

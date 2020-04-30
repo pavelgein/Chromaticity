@@ -4,6 +4,7 @@
 #include "test_system/test_system.h"
 
 #include <vector>
+#include <set>
 
 UNIT_TEST_SUITE(PairGenerator) {
     UNIT_TEST(Simple) {
@@ -45,5 +46,53 @@ UNIT_TEST_SUITE(CombinationGenerator) {
         }
 
         ASSERT(iter == answers.size(), "wrong number of iterations");
+    }
+}
+
+UNIT_TEST_SUITE(ObjectCombinationGenerator) {
+    UNIT_TEST(Set) {
+        std::set<int> s = {1, 2, 3, 4};
+        std::set<std::set<int>> result;
+        std::set<std::set<int>> expected = {
+            {1, 2},
+            {1, 3},
+            {1, 4},
+            {2, 3},
+            {2, 4},
+            {3, 4}
+        };
+
+        for (const auto& current : TObjectChoiceGenerator(2, s.begin(), s.end())) {
+            std::set<int> currentSet;
+            for (auto x : current) {
+                currentSet.insert(*x);
+            }
+            result.insert(std::move(currentSet));
+        }
+
+        ASSERT(expected == result, "");
+    }
+
+    UNIT_TEST(Vector) {
+        std::vector<int> s = {1, 2, 3, 4};
+        std::set<std::set<int>> result;
+        std::set<std::set<int>> expected = {
+            {1, 2},
+            {1, 3},
+            {1, 4},
+            {2, 3},
+            {2, 4},
+            {3, 4}
+        };
+
+        for (const auto& current : TObjectChoiceGenerator(2, s.begin(), s.end())) {
+            std::set<int> currentSet;
+            for (auto x : current) {
+                currentSet.insert(*x);
+            }
+            result.insert(std::move(currentSet));
+        }
+
+        ASSERT(expected == result, "");
     }
 }
