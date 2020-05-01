@@ -4,8 +4,8 @@
 
 template<typename T>
 void AssertVectors(const std::vector<T>& left, const std::vector<T>& right) {
-    ASSERT(left.size() == right.size(), "sizes mismatch");
+    ASSERT_EQUAL_WITH_MESSAGE(left.size(), right.size(), "sizes mismathed");
     for (size_t i = 0; i != left.size(); ++i) {
-        ASSERT(left[i] == right[i], "failed at " << i);
+        ASSERT_EQUAL_WITH_MESSAGE(left[i], right[i], "failed at " << i);
     }
 }

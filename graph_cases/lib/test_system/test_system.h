@@ -86,6 +86,10 @@ public:
     }                                                                              \
 } while(0)
 
+#define ASSERT_EQUAL_WITH_MESSAGE(__a, __b,  __msg) ASSERT((__a) == (__b), __msg)
+#define ASSERT_EQUAL(__a, __b) ASSERT_EQUAL_WITH_MESSAGE(__a, __b, "")
+
+
 
 #define UNIT_TEST(name) class TTest##name : public ITest {                        \
 public:                                                                           \
