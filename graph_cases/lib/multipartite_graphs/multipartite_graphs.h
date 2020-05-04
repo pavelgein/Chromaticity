@@ -23,15 +23,25 @@ struct TEdge {
     TEdge();
     TEdge(TVertex first, TVertex second);
     bool operator==(const TEdge& other) const;
+
+    bool operator!=(const TEdge& other) const {
+        return !(*this == other);
+    }
 };
 
 
 class IGraph {
 public:
-    virtual INT VerticesCount() const=0;
-    virtual INT I2Invariant() const=0;
-    virtual INT I3Invariant() const=0;
-    virtual INT I4Invariant() const=0;
+    virtual INT VerticesCount() const = 0;
+
+    virtual INT I2Invariant() const = 0;
+
+    virtual INT I3Invariant() const = 0;
+
+    virtual INT I4Invariant() const = 0;
+
+    virtual INT PtInvariant() const = 0;
+
     virtual ~IGraph() = default;
 };
 
@@ -48,15 +58,21 @@ public:
         : Components(begin, end)
         , I3Invariant_(0)
         , I4Invariant_(0)
+        , PtInvariant_(0)
         , Edges_(Sigma(2, Components))
     {
     }
 
 
-    virtual INT VerticesCount() const override;
-    virtual INT I2Invariant() const override;
-    virtual INT I3Invariant() const override;
-    virtual INT I4Invariant() const override;
+    INT VerticesCount() const override;
+
+    INT I2Invariant() const override;
+
+    INT I3Invariant() const override;
+
+    INT I4Invariant() const override;
+
+    INT PtInvariant() const override;
 
     bool operator==(const TCompleteGraph& other) const;
 
@@ -72,10 +88,14 @@ public:
     std::vector<INT>::const_iterator end() const;
 
 private:
+    INT CalculatePtInvariant() const;
+
     const std::vector<INT> Components;
     mutable INT I3Invariant_;
     mutable INT I4Invariant_;
+    mutable INT PtInvariant_;
     INT Edges_;
+
 
     INT ComputeI4() const;
 };
@@ -127,10 +147,15 @@ public:
 
     TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet);
 
-    virtual INT VerticesCount() const override;
-    virtual INT I2Invariant() const override;
-    virtual INT I3Invariant() const override;
-    virtual INT I4Invariant() const override;
+    INT VerticesCount() const override;
+
+    INT I2Invariant() const override;
+
+    INT I3Invariant() const override;
+
+    INT I4Invariant() const override;
+
+    INT PtInvariant() const override;
 
     INT ComponentSize(size_t component) const;
     size_t ComponentsNumber() const;
@@ -158,6 +183,11 @@ private:
     mutable INT I2Invariant_ = 0;
     mutable INT I3Invariant_ = 0;
     mutable INT I4Invariant_ = 0;
+    mutable INT PtInvariant_ = 0;
+
+    INT ComputePtInvariant() const;
+    INT CountGarlands() const;
+    bool IsInterestingGarland(const std::vector<const TEdge*>& edges) const;
 
     INT ComputeXi1() const;
     INT ComputeXi2AndXi3() const;

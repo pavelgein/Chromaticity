@@ -1,10 +1,16 @@
 #include "multipartite_graphs.h"
 
+#include <autoindexer/autoindexer.h>
+
+#include "math_utils/subsets.h"
 #include "math_utils/combinatorics.h"
 #include "math_utils/sigma.h"
 #include "math_utils/sum.h"
 
 #include <ostream>
+#include <unordered_map>
+#include <queue>
+
 
 namespace {
 bool IsAdjanced(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
@@ -85,6 +91,7 @@ TCompleteGraph::TCompleteGraph(const std::initializer_list<INT>& components)
     : Components{components}
     , I3Invariant_(0)
     , I4Invariant_(0)
+    , PtInvariant_(0)
     , Edges_(Sigma(2, Components))
     {
     }
@@ -115,6 +122,24 @@ INT TCompleteGraph::I4Invariant() const {
     }
 
     return I4Invariant_;
+}
+
+
+INT TCompleteGraph::PtInvariant() const {
+    if (PtInvariant_ == 0) {
+        PtInvariant_ = CalculatePtInvariant();
+    }
+
+    return PtInvariant_;
+}
+
+INT TCompleteGraph::CalculatePtInvariant() const {
+    INT result = 0;
+    for (auto component : Components) {
+        result += 1ull << (component - 1);
+    }
+
+    return result - ComponentsNumber();
 }
 
 bool TCompleteGraph::operator==(const TCompleteGraph& other) const {
@@ -176,18 +201,18 @@ std::vector<TEdge> TCompleteGraph::GenerateAllEdges() const {
     return edges;
 }
 
-    TVertex::TVertex()
+TVertex::TVertex()
     : ComponentId(0)
     , VertexId(0)
-    {
-    }
+{
+}
 
 
 TVertex::TVertex(size_t componentId, INT vertexId)
     : ComponentId(componentId)
     , VertexId(vertexId)
-    {
-    }
+{
+}
 
 bool TVertex::operator==(const TVertex& other) const {
     return (ComponentId == other.ComponentId) && (VertexId == other.VertexId);
@@ -197,14 +222,14 @@ bool TVertex::operator==(const TVertex& other) const {
 TEdge::TEdge()
     : First()
     , Second()
-    {
-    }
+{
+}
 
 TEdge::TEdge(TVertex first, TVertex second)
     : First(first)
     , Second(second)
-    {
-    }
+{
+}
 
 bool TEdge::operator==(const TEdge& other) const {
     return ((First == other.First) && (Second == other.Second)) || ((First == other.Second) && (Second == other.First));
@@ -214,10 +239,8 @@ bool TEdge::operator==(const TEdge& other) const {
 TDenseGraph::TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet)
     : Graph(&graph)
     , EdgeSet(std::move(edgeSet))
-    {
-    }
-
-
+{
+}
 
 INT TDenseGraph::VerticesCount() const {
     return SumRange(Graph->begin(), Graph->end());
@@ -347,6 +370,114 @@ INT TDenseGraph::ComputeI4ThreeParts() const {
     }
 
     return answer;
+}
+
+INT TDenseGraph::PtInvariant() const {
+    if (PtInvariant_ == 0) {
+        PtInvariant_ = ComputePtInvariant();
+    }
+
+    return PtInvariant_;
+}
+
+INT TDenseGraph::ComputePtInvariant() const {
+    return Graph->PtInvariant() + CountGarlands();
+}
+
+INT TDenseGraph::CountGarlands() const {
+    INT result = 0;
+    for (const auto& subset : TSubsetGenerator(EdgeSet.begin(), EdgeSet.end())) {
+        if (IsInterestingGarland(subset)) {
+            result += 1;
+        }
+    }
+    return result;
+}
+
+bool TDenseGraph::IsInterestingGarland(const std::vector<const TEdge*>& edges) const {
+    if (edges.size() == 0) {
+        return false;
+    }
+
+    TAutoIndexer<TVertex> vertexToInd;
+    std::unordered_set<TEdge> edgeSet;
+    for (const TEdge* edge : edges) {
+        vertexToInd.GetIndex(edge->First);
+        vertexToInd.GetIndex(edge->Second);
+        edgeSet.insert(*edge);
+    }
+
+    size_t n = vertexToInd.Size();
+
+    size_t numberOfDestoryed = 0;
+    {
+        std::unordered_map<size_t, size_t> deletedInComponents;
+        for (size_t i = 0; i != n; ++i) {
+            deletedInComponents[vertexToInd.GetKey(i).ComponentId]++;
+        }
+
+        for (const auto [componentId, deleted] : deletedInComponents) {
+            if (deleted == Graph->ComponentSize(componentId)) {
+                numberOfDestoryed += 1;
+            }
+        }
+    }
+
+    std::vector<size_t> colors(n, 0);
+    std::vector<std::vector<const TVertex*>> graph(n);
+    for (const TEdge* edge : edges) {
+        auto firstIndex = vertexToInd.GetIndex(edge->First);
+        auto secondIndex = vertexToInd.GetIndex(edge->Second);
+        graph[firstIndex].push_back(&edge->Second);
+        graph[secondIndex].push_back(&edge->First);
+    }
+
+    size_t currentColor = 0;
+    for (size_t i = 0; i != n; ++i) {
+        if (colors[i] != 0) {
+            continue;
+        }
+
+        ++currentColor;
+
+        std::unordered_map<size_t, std::vector<const TVertex*>> vertexByComponents;
+        std::queue<size_t> q;
+
+        {
+            const TVertex& currentVertex = vertexToInd.GetKey(i);
+            vertexByComponents[currentVertex.ComponentId].push_back(&currentVertex);
+            colors[i] = currentColor;
+        }
+
+        q.push(i);
+        while (!q.empty()) {
+            auto current = q.front();
+            q.pop();
+            for (const TVertex* vertex : graph[current]) {
+                auto index = vertexToInd.GetIndex(*vertex);
+                if (colors[index] == 0) {
+                    q.push(index);
+                    colors[index] = currentColor;
+                    vertexByComponents[vertex->ComponentId].push_back(vertex);
+                }
+            }
+        }
+
+        for (auto firstComponentIter = vertexByComponents.begin(); std::next(firstComponentIter) != vertexByComponents.end(); ++firstComponentIter) {
+            const auto& firstComponent = firstComponentIter->second;
+            for (auto secondComponentIter = std::next(firstComponentIter); secondComponentIter != vertexByComponents.end(); ++secondComponentIter) {
+                const auto& secondComponent = secondComponentIter->second;
+                for (const TVertex* firstVertex : firstComponent) {
+                    for (const TVertex* secondVertex: secondComponent) {
+                        if (edgeSet.find({*firstVertex, *secondVertex}) == edgeSet.end()) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return numberOfDestoryed + 1 == currentColor;
 }
 
 TDenseGraph::TDenseGraph(const TDenseGraph& other)

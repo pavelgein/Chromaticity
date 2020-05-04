@@ -72,10 +72,12 @@ UNIT_TEST_SUITE(Invariants) {
         ASSERT(completeGraph.I2Invariant() == 27, "i2 invariant mismatched");
         ASSERT(completeGraph.I3Invariant() == 27, "i2 invariant mismatched");
         ASSERT(completeGraph.I4Invariant() == 27, "i2 invariant mismatched");
+        ASSERT(9 == completeGraph.PtInvariant(), "pt invariant mismatched");
 
         ASSERT(graph.I2Invariant() == 26, "i2 invariant mismatched");
         ASSERT(graph.I3Invariant() == 24, "i3 invariant mismatched");
         ASSERT(graph.I4Invariant() == 26, "i4 invariant mismatched");
+        ASSERT(graph.PtInvariant() == 10, "pt invariant mismatched");
     }
 
     UNIT_TEST(TestTwoEdges) {
@@ -92,6 +94,7 @@ UNIT_TEST_SUITE(Invariants) {
         ASSERT(graph.I2Invariant() == 25, "i2 invariant mismatched");
         ASSERT(graph.I3Invariant() == 21, "i3 invariant mismatched");
         ASSERT(graph.I4Invariant() == 27, "i4 invariant mismatched");
+        ASSERT(graph.PtInvariant() == 12, "pt invariant mismatched");
     }
 
     UNIT_TEST(TestXi2) {
@@ -108,6 +111,7 @@ UNIT_TEST_SUITE(Invariants) {
         ASSERT(graph.I2Invariant() == 25, "i2 invariant mismatched");
         ASSERT(graph.I3Invariant() == 22, "i3 invariant mismatched");
         ASSERT(graph.I4Invariant() == 21, "i4 invariant mismatched");
+        ASSERT(graph.PtInvariant() == 11, "pt invariant mismatched");
     }
 
     UNIT_TEST(TextXi2_2) {
