@@ -6,6 +6,7 @@ SET(SOURCE_FILES
     test_combinatorics.cpp
     test_multipartite_graphs.cpp
     test_queue.cpp
+    test_subsets.cpp
 )
 
 SET(LIBRARIES

@@ -1,1 +1,1 @@
-ADD_LIBRARY(math_utils STATIC sum.cpp combinatorics.cpp sigma.cpp)
+ADD_LIBRARY(math_utils STATIC sum.cpp combinatorics.cpp sigma.cpp subsets.cpp)
