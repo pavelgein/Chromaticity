@@ -7,6 +7,7 @@ SET(SOURCE_FILES
     test_multipartite_graphs.cpp
     test_queue.cpp
     test_subsets.cpp
+    test_autoindexer.cpp
 )
 
 SET(LIBRARIES
