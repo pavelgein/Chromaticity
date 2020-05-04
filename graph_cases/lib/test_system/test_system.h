@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <memory>
 
 struct TTestRunStat {
     int Success = 0;
