@@ -4,13 +4,16 @@
 #include <vector>
 
 
-template<typename T>
+template<typename TIteratorType>
 class TSubsetGenerator {
     public:
+        using element_type = typename TIteratorType::value_type;
+
         class TIterator {
         public:
-            TIterator(const std::vector<T>& set, size_t state)
-                : Set(set)
+            TIterator(TIteratorType begin, TIteratorType end, size_t state)
+                : Begin(begin)
+                , End(end)
                 , State(state)
             {
             }
@@ -22,12 +25,14 @@ class TSubsetGenerator {
                     return false;
                 }
 
-                if (Set.size() != other.Set.size()) {
+                auto thisDistance = std::distance(Begin, End);
+                auto otherDistance = std::distance(other.Begin, other.End);
+                if (thisDistance != otherDistance) {
                     return false;
                 }
 
-                for (size_t i = 0; i != Set.size(); ++i) {
-                    if (Set[i] != other.Set[i]) {
+                for (auto thisIterator = Begin, otherIterator = other.Begin; thisIterator != End && otherIterator != other.End; ++thisIterator, ++otherIterator) {
+                    if (*thisIterator != *otherIterator) {
                         return false;
                     }
                 }
@@ -50,39 +55,43 @@ class TSubsetGenerator {
                 return old;
             }
 
-            std::vector<const T*> operator*() const {
-                std::vector<const T*> result;
+            std::vector<const element_type*> operator*() const {
+                std::vector<const element_type*> result;
                 size_t state = State;
-                size_t ind = 0;
+                auto iterator = Begin;
                 while (state) {
                     if (state % 2 == 1) {
-                        result.push_back(&Set[ind]);
+                        result.push_back(&(*iterator));
                     }
 
-                    ++ind;
+                    ++iterator;
                     state >>= 1;
                 }
                 return result;
             }
 
         private:
-            const std::vector<T>& Set;
+            TIteratorType Begin;
+            TIteratorType End;
             size_t State;
         };
 
-        explicit TSubsetGenerator(const std::vector<T>& set)
-            : Set(set)
+
+        explicit TSubsetGenerator(TIteratorType begin, TIteratorType end)
+            : Begin(begin)
+            , End(end)
         {
         }
 
         TIterator begin() const {
-            return TIterator{Set, 0};
+            return TIterator{Begin, End, 0};
         }
 
         TIterator end() const {
-            return TIterator{Set, static_cast<size_t>(1) << Set.size()};
+            return TIterator{Begin, End, static_cast<size_t>(1) << std::distance(Begin, End)};
         }
 
     private:
-        const std::vector<T>& Set;
+        TIteratorType Begin;
+        TIteratorType End;
 };
