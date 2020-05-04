@@ -16,6 +16,7 @@ SET(LIBRARIES
     multithread_writer
     math_utils
     multipartite_graphs
+    optparser
 )
 
 ADD_EXECUTABLE(tests ${SOURCE_FILES})

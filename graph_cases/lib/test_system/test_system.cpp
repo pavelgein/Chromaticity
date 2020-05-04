@@ -7,6 +7,7 @@ void WriteStat(const TTestRunStat& stat, std::ostream& outp) {
     outp << " * Success: " << stat.Success << std::endl;
     outp << " * Failed: " << stat.Failed << std::endl;
     outp << " * Crashed: " << stat.Crashed << std::endl;
+    outp << " * Skipped: " << stat.Skipped << std::endl;
 }
 
 void TTestRegistry::Run(ITest* test, TTestRunStat& stat) {
@@ -23,11 +24,15 @@ void TTestRegistry::Run(ITest* test, TTestRunStat& stat) {
     }
 }
 
-TTestRunStat TTestRegistry::CreateAndRun() {
+TTestRunStat TTestRegistry::CreateAndRun(ITestFilter* filter) {
     TTestRunStat stat;
     for (const auto& creator: Creators) {
         ITest* test = creator();
-        Run(test, stat);
+        if (!filter || filter->Check(test)) {
+            Run(test, stat);
+        } else {
+            stat.Skipped += 1;
+        }
         delete test;
     }
 

@@ -11,6 +11,7 @@ struct TTestRunStat {
     int Success = 0;
     int Failed = 0;
     int Crashed = 0;
+    int Skipped = 0;
 };
 
 void WriteStat(const TTestRunStat& stat, std::ostream& outp);
@@ -32,13 +33,70 @@ public:
         return prefix + "::" + GetLocalName();
     };
 
-    virtual std::string GetPrefix() {
+    virtual std::string GetPrefix() const {
         return "";
     };
 
     virtual std::string GetLocalName() const = 0;
 };
 
+class ITestFilter {
+public:
+    virtual bool Check(const ITest* test) const = 0;
+
+    virtual ~ITestFilter() = default;
+};
+
+class TTestNameFilter : public ITestFilter {
+public:
+    TTestNameFilter(std::string name)
+        : Name(std::move(name))
+    {
+    }
+
+    bool Check(const ITest* test) const override {
+        return test->GetLocalName() == Name;
+    }
+
+private:
+    std::string Name;
+};
+
+class TTestSuiteFilter : public ITestFilter {
+public:
+    TTestSuiteFilter(std::string name)
+        : Name(std::move(name))
+    {
+    }
+
+    bool Check(const ITest* test) const override {
+        return test->GetPrefix() == Name;
+    }
+
+private:
+    std::string Name;
+};
+
+class AndFilter : public ITestFilter {
+public:
+    AndFilter(std::vector<std::unique_ptr<ITestFilter>> filters)
+        : Filters(std::move(filters))
+    {
+    }
+
+    bool Check(const ITest* test) const override {
+        for (const auto& filter : Filters) {
+            if (!filter->Check(test)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+private:
+    std::vector<std::unique_ptr<ITestFilter>> Filters;
+};
 
 class TTestRegistry {
 public:
@@ -54,7 +112,7 @@ public:
         Creators.push_back(creator);
     }
 
-    TTestRunStat CreateAndRun();
+    TTestRunStat CreateAndRun(ITestFilter* filter = nullptr);
 
 private:
     std::vector<TCreator> Creators;
@@ -120,7 +178,7 @@ TTest##name::TRegistrator TTest##name::Registrator = TTest##name::TRegistrator()
     public: \
         ITest() : ::ITest() {}; \
         virtual ~ITest() = default; \
-        std::string GetPrefix() override { \
+        std::string GetPrefix() const override { \
             return #name; \
         } \
     }; \
