@@ -41,23 +41,53 @@ void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet&
     }
 }
 
-void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp) {
-    PrintCollection(outp, target.DeletedEdges());
-    INT i3_new = target.I3Invariant();
-    auto i4_new = target.I4Invariant();
 
-    outp << "I3: " << i3_new << " I4: " << i4_new;
-    if (i3_new != source.I3Invariant()) {
-        outp << " Answer: No Reason: I3";
-    } else {
-        if (i4_new == source.I4Invariant()) {
-            outp << " Answer: Yes";
-        } else {
-            outp << " Answer: No Reason: I4";
+struct TInvariantChecker {
+    using TChecker = std::function<INT(const NMultipartiteGraphs::IGraph&)>;
+
+    std::string Name;
+    TChecker Checker;
+
+    TInvariantChecker() = default;
+
+    TInvariantChecker(std::string name, TChecker checker)
+        : Name(std::move(name))
+        , Checker(checker)
+    {
+    }
+};
+
+static TInvariantChecker checkers[] = {
+    {"I3", [](const NMultipartiteGraphs::IGraph& graph){ return graph.I3Invariant();}},
+    {"I4", [](const NMultipartiteGraphs::IGraph& graph){ return graph.I4Invariant();}},
+    {"PT", [](const NMultipartiteGraphs::IGraph& graph){ return graph.PtInvariant();}}
+};
+
+void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp, bool computeAll=true) {
+    PrintCollection(outp, target.DeletedEdges());
+    const std::string* reason = nullptr;
+    for (const auto& checker : checkers) {
+        auto sourceValue = checker.Checker(source);
+        auto targetValue = checker.Checker(target);
+        outp << checker.Name << ": " << targetValue << ' ';
+        if (sourceValue != targetValue) {
+            if (reason == nullptr) {
+                reason = &checker.Name;
+            }
+
+            if (!computeAll) {
+                break;
+            }
         }
     }
 
-    outp << " ";
+    if (reason == nullptr) {
+        outp << "Answer: YES";
+    } else {
+        outp << "Answer: NO Reason: " << *reason;
+    }
+
+    outp << ' ';
     WriteEdgeStat(source.ComponentsNumber(), target.DeletedEdges(), outp);
     outp << "\n";
 }
