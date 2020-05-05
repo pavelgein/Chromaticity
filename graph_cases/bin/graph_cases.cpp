@@ -1,19 +1,20 @@
-#include <utility>
-#include <iostream>
-#include <vector>
-#include <unordered_set>
 #include <chrono>
+#include <fstream>
+#include <functional>
+#include <iostream>
 #include <sstream>
 #include <unordered_map>
-#include <fstream>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-#include "local_types.h"
-#include "multipartite_graphs/multipartite_graphs.h"
-#include "math_utils/combinatorics.h"
-#include "utils/print.h"
 #include "executer/executer.h"
-#include "optparser/optparser.h"
+#include "local_types.h"
+#include "math_utils/combinatorics.h"
+#include "multipartite_graphs/multipartite_graphs.h"
 #include "multithread_writer/writer.h"
+#include "optparser/optparser.h"
+#include "utils/print.h"
 
 
 void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet& edgeSet, std::ostream& outp) {
