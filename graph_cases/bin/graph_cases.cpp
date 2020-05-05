@@ -92,16 +92,17 @@ void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, co
 
 class TCompareGraphsTask : public ITask {
 public:
-    TCompareGraphsTask(const NMultipartiteGraphs::TCompleteGraph& source, TWriter& writer, NMultipartiteGraphs::TDenseGraph target)
+    TCompareGraphsTask(const NMultipartiteGraphs::TCompleteGraph& source, TWriter& writer, NMultipartiteGraphs::TDenseGraph target, bool computeAll)
         : Source(source)
         , Target(target)
         , Writer(writer)
+        , ComputeAll(computeAll)
     {
     }
 
     void Do() override {
         std::stringstream ss;
-        CompareSourceAndDense(Source, Target, ss);
+        CompareSourceAndDense(Source, Target, ss, ComputeAll);
         ss.flush();
         Writer.Push(ss.str());
     }
@@ -110,11 +111,12 @@ private:
     const NMultipartiteGraphs::TCompleteGraph& Source;
     NMultipartiteGraphs::TDenseGraph Target;
     TWriter& Writer;
+    bool ComputeAll;
 };
 
 
 void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target,
-                        std::ostream& debug, int threadCount) {
+                        std::ostream& debug, int threadCount, bool computeAll) {
     debug << "Checking graphs" << std::endl;
     debug << "Source: " << source << std::endl;
     debug << "Target: " << target << std::endl;
@@ -188,7 +190,7 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
         }
 
         NMultipartiteGraphs::TDenseGraph newTarget{target, std::move(current_edges)};
-        executer->Add(std::make_unique<TCompareGraphsTask>(source, writer, std::move(newTarget)));
+        executer->Add(std::make_unique<TCompareGraphsTask>(source, writer, std::move(newTarget), computeAll));
         done += 1;
         if (done % 100000 == 0) {
             std::cerr << "done: " << done << ", queue size: " << executer->Size() << std::endl;
@@ -204,6 +206,7 @@ struct TOptions {
     std::vector<INT> Target;
     int ThreadCount;
     std::string OutputFile;
+    bool ComputeAll = false;
 
     static TOptions Parse(int argc, const char ** argv) {
         TOptions opts;
@@ -213,6 +216,7 @@ struct TOptions {
         parser.AddShortOption('t').AppendTo(&opts.Target).Required(true);
         parser.AddLongOption("thread-count").Store(&opts.ThreadCount).Default("6");
         parser.AddLongOption("output-file").Store(&opts.OutputFile).Default("");
+        parser.AddLongOption("compute-all").SetFlag(&opts.ComputeAll).Default("false");
 
         parser.Parse(argc, argv);
 
@@ -232,7 +236,7 @@ int main(int argc, const char ** argv) {
         out->open(opts.OutputFile);
     }
 
-    compare_two_graphs(source, target, out ? *out : std::cout, opts.ThreadCount);
+    compare_two_graphs(source, target, out ? *out : std::cout, opts.ThreadCount, opts.ComputeAll);
     if (out) {
         out->flush();
         out->close();
