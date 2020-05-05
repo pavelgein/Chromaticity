@@ -8,6 +8,7 @@ SET(SOURCE_FILES
     test_queue.cpp
     test_subsets.cpp
     test_autoindexer.cpp
+    test_optparser.cpp
 )
 
 SET(LIBRARIES

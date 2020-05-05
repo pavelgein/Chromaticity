@@ -1,2 +1,2 @@
 add_executable(graph_cases graph_cases.cpp)
-target_link_libraries(graph_cases executer multithread_writer math_utils multipartite_graphs)
+target_link_libraries(graph_cases executer multithread_writer math_utils multipartite_graphs optparser)

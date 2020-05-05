@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstring>
 #include <deque>
 #include <exception>
@@ -21,21 +23,15 @@ public:
     }
 };
 
-void FromString(const char * option, int& k) {
-    k = std::atoi(option);
-}
+void FromString(const char * option, int& k);
 
-void FromString(const char * option, unsigned int& k) {
-    k = std::atol(option);
-}
+void FromString(const char * option, unsigned int& k);
 
-void FromString(const char * option, std::string& s) {
-   s = std::string(option);
-}
+void FromString(const char * option, std::string& s);
 
-void FromString(const char * option, unsigned long& l) {
-    l = std::atoll(option);
-}
+void FromString(const char * option, unsigned long& l);
+
+void FromString(const char * option, bool& target);
 
 struct IHandler {
     virtual ~IHandler() = default;
@@ -101,6 +97,29 @@ private:
     std::vector<T>* Target;
 };
 
+class TFlagHandler : public IHandler {
+public:
+    TFlagHandler(bool* target)
+        : Target(target)
+    {
+    }
+
+    void Handle(int argc, const char ** argv, int& optNum) override {
+        (void)(argc);
+        (void)(argv);
+        (void)(optNum);
+        *Target = true;
+    }
+
+    void HandleSingle(const char * option) override {
+        (void)(option);
+        FromString(option, *Target);
+    }
+
+private:
+    bool* Target;
+};
+
 
 struct TOpt {
     std::string Name;
@@ -132,6 +151,11 @@ struct TOpt {
     template<typename T>
     TOpt& Store(T* target) {
         Handler = std::make_unique<TSimpleHandler<T>>(target);
+        return *this;
+    }
+
+    TOpt& SetFlag(bool* target) {
+        Handler = std::make_unique<TFlagHandler>(target);
         return *this;
     }
 
@@ -240,7 +264,7 @@ private:
                     option.UseDefault();
                 } else if (option.Required_) {
                     std::stringstream ss;
-                    ss << "option " << option.Name << " marked as required  and not set";
+                    ss << "option " << option.Name << " marked as required and not set";
                     throw TBadOptionException(ss.str());
 
                 }
