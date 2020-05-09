@@ -7,13 +7,15 @@
 #include <unordered_set>
 
 
-
 namespace NMultipartiteGraphs {
 struct TVertex {
     size_t ComponentId;
     INT VertexId;
+
     TVertex(size_t ComponentId, INT VertexId);
+
     TVertex();
+
     bool operator==(const TVertex& other) const;
 };
 
@@ -122,7 +124,7 @@ template<>
 struct hash<NMultipartiteGraphs::TEdge> {
     size_t operator()(const NMultipartiteGraphs::TEdge& edge) const {
         return std::hash<NMultipartiteGraphs::TVertex>()(edge.First) ^
-                std::hash<NMultipartiteGraphs::TVertex>()(edge.Second);
+               std::hash<NMultipartiteGraphs::TVertex>()(edge.Second);
     }
 };
 }
