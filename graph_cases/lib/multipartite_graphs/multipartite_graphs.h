@@ -53,6 +53,10 @@ public:
 
     TCompleteGraph(const std::initializer_list<INT>& components);
 
+    TCompleteGraph(const TCompleteGraph& other) = default;
+
+    TCompleteGraph& operator=(const TCompleteGraph& other) = default;
+
     template<class TInputIterator>
     TCompleteGraph(TInputIterator begin, TInputIterator end)
         : Components(begin, end)
@@ -90,7 +94,7 @@ public:
 private:
     INT CalculatePtInvariant() const;
 
-    const std::vector<INT> Components;
+    std::vector<INT> Components;
     mutable INT I3Invariant_;
     mutable INT I4Invariant_;
     mutable INT PtInvariant_;
