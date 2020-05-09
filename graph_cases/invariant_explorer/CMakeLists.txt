@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(invariant_explorer main.cpp)
+TARGET_LINK_LIBRARIES(invariant_explorer executer multithread_writer math_utils multipartite_graphs optparser)
