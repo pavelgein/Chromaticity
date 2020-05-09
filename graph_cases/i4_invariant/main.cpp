@@ -7,29 +7,33 @@
 #include <iostream>
 #include <mutex>
 #include <algorithm>
+#include <functional>
+#include <limits>
 
 struct TOptions {
-    unsigned int V1;
-    unsigned int V2;
+    NMultipartiteGraphs::TCompleteGraph Graph;
     unsigned int MaxNumberOfEdges;
+    std::string Invariant;
     int ThreadCount;
     size_t MaxQueueSize;
 
     static TOptions ParseFromCommandLine(int argc, const char ** argv) {
         TOptions opts{};
 
-        TParser parser;
-        parser.AddFreeArgument("v1")
-            .Required(true)
-            .Store(&opts.V1);
+        std::vector<INT> graph;
 
-        parser.AddFreeArgument("v2")
+        TParser parser;
+        parser.AddFreeArgument("graph")
             .Required(true)
-            .Store(&opts.V2);
+            .AppendTo(&graph);
 
         parser.AddLongOption('e', "max-edge-number")
             .Default("0")
             .Store(&opts.MaxNumberOfEdges);
+
+        parser.AddLongOption('i', "invariant")
+            .Default("i4")
+            .Store(&opts.Invariant);
 
         parser.AddLongOption('t', "thread-count")
             .Default("1")
@@ -41,24 +45,28 @@ struct TOptions {
 
         parser.Parse(argc, argv);
 
+        opts.Graph = {graph.begin(), graph.end()};
+
         return opts;
     }
 };
 
 
+template<typename TNumber>
 struct TResult {
     unsigned int NumberOfEdges;
-    unsigned int MaxI4 = 0;
-    unsigned int MinI4 = -1;
+    TNumber MaxValue = std::numeric_limits<TNumber>::min();
+    TNumber MinValue = std::numeric_limits<TNumber>::max();
 
     TResult(unsigned int numberOfEdges)
         : NumberOfEdges(numberOfEdges)
-        , MaxI4(0)
-        , MinI4(-1)
+        , MaxValue{std::numeric_limits<TNumber>::min()}
+        , MinValue{std::numeric_limits<TNumber>::max()}
     {
     }
 };
 
+template<typename TNumber>
 class TResultCollector {
 public:
     TResultCollector(unsigned int numberOfEdges)
@@ -67,41 +75,47 @@ public:
     {
     }
 
-    inline TResult GetResult() const {
+    inline TResult<TNumber> GetResult() const {
         return Result;
     }
 
-    TResultCollector& Add(unsigned int i4) {
+    TResultCollector& Add(unsigned int value) {
         std::unique_lock<std::mutex> lock{Mutex};
-        Result.MaxI4 = std::max(Result.MaxI4, i4);
-        Result.MinI4 = std::min(Result.MinI4, i4);
+        Result.MaxValue = std::max(Result.MaxValue, value);
+        Result.MinValue = std::min(Result.MinValue, value);
         return *this;
     }
 
 private:
-    TResult Result;
+    TResult<TNumber> Result;
     std::mutex Mutex;
 };
 
+template<typename TNumber>
 struct TTask : public ITask {
-    TTask(NMultipartiteGraphs::TDenseGraph&& graph, TResultCollector* collector)
+    using TInvariant = std::function<TNumber(const NMultipartiteGraphs::TDenseGraph&)>;
+
+    TTask(NMultipartiteGraphs::TDenseGraph&& graph, const TInvariant& invariant, TResultCollector<TNumber>* collector)
         : Graph(graph)
         , Collector(collector)
+        , Invariant(invariant)
     {
     }
 
     void Do() override {
-        Collector->Add(Graph.I4Invariant());
+        Collector->Add(Invariant(Graph));
     }
 
     NMultipartiteGraphs::TDenseGraph Graph;
-    TResultCollector* Collector;
+    TResultCollector<TNumber>* Collector;
+    TInvariant Invariant;
 };
 
 
-std::deque<TResultCollector> CheckAllEdges(const NMultipartiteGraphs::TCompleteGraph& graph, unsigned int maxNumberOfEdges, IExecuter* executer) {
+template<typename TNumber>
+std::deque<TResultCollector<TNumber>> CheckAllEdges(const NMultipartiteGraphs::TCompleteGraph& graph, unsigned int maxNumberOfEdges, const typename TTask<TNumber>::TInvariant& invariant, IExecuter* executer) {
     auto allEdges = graph.GenerateAllEdges();
-    std::deque<TResultCollector> collectors;
+    std::deque<TResultCollector<TNumber>> collectors;
     for (unsigned int numberOfEdges = 1; numberOfEdges <= maxNumberOfEdges; ++numberOfEdges) {
         collectors.emplace_back(numberOfEdges);
         for (const auto& combination : TChoiceGenerator(allEdges.size(), numberOfEdges)) {
@@ -109,23 +123,36 @@ std::deque<TResultCollector> CheckAllEdges(const NMultipartiteGraphs::TCompleteG
             for (auto i : combination) {
                 edgeSet.insert(allEdges[i]);
             }
-            executer->Add(std::make_unique<TTask>(NMultipartiteGraphs::TDenseGraph{graph, std::move(edgeSet)}, &collectors.back()));
+            executer->Add(std::make_unique<TTask<TNumber>>(NMultipartiteGraphs::TDenseGraph{graph, std::move(edgeSet)}, invariant, &collectors.back()));
         }
     }
 
     return collectors;
 }
 
+
+TTask<unsigned int>::TInvariant MakeInvariant(const std::string& name) {
+    if (name == "i4") {
+        return &NMultipartiteGraphs::TDenseGraph::I4Invariant;
+    }
+
+    if (name == "pt") {
+        return &NMultipartiteGraphs::TDenseGraph::PtInvariant;
+    }
+
+    throw std::logic_error("unknown invariant: " + name);
+}
+
 int main(int argc, const char ** argv) {
     auto options = TOptions::ParseFromCommandLine(argc, argv);
-    NMultipartiteGraphs::TCompleteGraph graph{{options.V1, options.V2}};
-
+    const auto& graph = options.Graph;
     auto executer = CreateExecuter(options.ThreadCount, options.MaxQueueSize, nullptr);
-    auto collectors = CheckAllEdges(graph, (options.MaxNumberOfEdges == 0) ? graph.I2Invariant() : options.MaxNumberOfEdges, executer.get());
+    unsigned int maxNumberOfEdges = (options.MaxNumberOfEdges == 0) ? graph.I2Invariant() : options.MaxNumberOfEdges;
+    auto collectors = CheckAllEdges<unsigned int>(graph, maxNumberOfEdges, MakeInvariant(options.Invariant), executer.get());
     executer->Stop();
 
     for (const auto& collector : collectors) {
-        TResult result = collector.GetResult();
-        std::cout << result.NumberOfEdges << " " << result.MinI4 << " " << result.MaxI4 << std::endl;
+        auto result = collector.GetResult();
+        std::cout << result.NumberOfEdges << " " << result.MinValue << " " << result.MaxValue << std::endl;
     }
 }
