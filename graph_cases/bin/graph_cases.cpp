@@ -56,9 +56,9 @@ struct TInvariantChecker {
 };
 
 static TInvariantChecker checkers[] = {
-    {"I3", [](const NMultipartiteGraphs::IGraph& graph){ return graph.I3Invariant();}},
-    {"I4", [](const NMultipartiteGraphs::IGraph& graph){ return graph.I4Invariant();}},
-    {"PT", [](const NMultipartiteGraphs::IGraph& graph){ return graph.PtInvariant();}}
+    {"I3", &NMultipartiteGraphs::IGraph::I3Invariant},
+    {"I4", &NMultipartiteGraphs::IGraph::I4Invariant},
+    {"PT", &NMultipartiteGraphs::IGraph::PtInvariant}
 };
 
 void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp, bool computeAll=true) {
@@ -164,29 +164,24 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
     INT edge_diff = target_edges - source_edges;
     debug << "Difference: " << edge_diff << std::endl;
 
-    INT source_i3 = source.I3Invariant();
-    INT target_i3 = target.I3Invariant();
+    for (const auto& checker: checkers) {
+        debug << "Source " << checker.Name << ": "  << checker.Checker(source) << std::endl;
+        debug << "Target " << checker.Name << ": "  << checker.Checker(target) << std::endl;
+    }
 
-    INT source_i4 = source.I4Invariant();
-    INT target_i4 = target.I4Invariant();
-
-    debug << "Source I3: " << source_i3 << std::endl;
-    debug << "Target I3: " << target_i3 << std::endl;
-    debug << "Source I4: " << source_i4 << std::endl;
-    debug << "Target I4: " << target_i4 << std::endl;
     debug << std::flush;
 
-    std::vector<NMultipartiteGraphs::TEdge> all_edges = target.GenerateAllEdges();
+    std::vector<NMultipartiteGraphs::TEdge> allEdges = target.GenerateAllEdges();
 
     TWriter writer{debug};
 
     auto executer = CreateExecuter(threadCount, 1000, nullptr);
 
     size_t done = 0;
-    for (const auto& combination : TChoiceGenerator(all_edges.size(), edge_diff)) {
+    for (const auto& combination : TChoiceGenerator(allEdges.size(), edge_diff)) {
         NMultipartiteGraphs::TEdgeSet current_edges;
         for (const auto x: combination) {
-            current_edges.insert(all_edges[x]);
+            current_edges.insert(allEdges[x]);
         }
 
         NMultipartiteGraphs::TDenseGraph newTarget{target, std::move(current_edges)};
