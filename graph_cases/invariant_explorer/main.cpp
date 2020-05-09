@@ -93,7 +93,7 @@ private:
 
 template<typename TNumber>
 struct TTask : public ITask {
-    using TInvariant = std::function<TNumber(const NMultipartiteGraphs::TDenseGraph&)>;
+    using TInvariant = NMultipartiteGraphs::TInvariant<TNumber>;
 
     TTask(NMultipartiteGraphs::TDenseGraph&& graph, const TInvariant& invariant, TResultCollector<TNumber>* collector)
         : Graph(graph)
@@ -133,11 +133,11 @@ std::deque<TResultCollector<TNumber>> CheckAllEdges(const NMultipartiteGraphs::T
 
 TTask<unsigned int>::TInvariant MakeInvariant(const std::string& name) {
     if (name == "i4") {
-        return &NMultipartiteGraphs::TDenseGraph::I4Invariant;
+        return &NMultipartiteGraphs::IGraph::I4Invariant;
     }
 
     if (name == "pt") {
-        return &NMultipartiteGraphs::TDenseGraph::PtInvariant;
+        return &NMultipartiteGraphs::IGraph::PtInvariant;
     }
 
     throw std::logic_error("unknown invariant: " + name);

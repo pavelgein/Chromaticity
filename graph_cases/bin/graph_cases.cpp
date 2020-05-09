@@ -41,7 +41,7 @@ void WriteEdgeStat(size_t componentsNumber, const NMultipartiteGraphs::TEdgeSet&
 
 
 struct TInvariantChecker {
-    using TChecker = std::function<INT(const NMultipartiteGraphs::IGraph&)>;
+    using TChecker = NMultipartiteGraphs::TInvariant<INT>;
 
     std::string Name;
     TChecker Checker;

@@ -1,5 +1,6 @@
 SET(SOURCE_FILES
     multipartite_graphs.cpp
+    graph.cpp
 )
 
 SET(LIBRARIES
