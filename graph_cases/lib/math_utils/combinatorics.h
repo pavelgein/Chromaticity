@@ -1,5 +1,8 @@
 #pragma once
 
+#include "policy.h"
+#include "traits.h"
+
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -231,16 +234,17 @@ namespace std {
 }
 
 
-template<typename TIteratorType>
+template<typename TIteratorType, typename TPolicy=NPolicy::TPointerPolicy<typename TIteratorDereferencer<TIteratorType>::TUnreferenced>>
 class TObjectChoiceGenerator {
-    using object_type = typename std::iterator_traits<TIteratorType>::value_type;
+    using TObjectType = typename TIteratorDereferencer<TIteratorType>::TUnreferenced;
+    using TStorage = std::vector<const TObjectType*>;
 
     public:
         class TIterator {
         public:
-            using value_type = std::vector<const object_type*>;
+            using value_type = std::vector<typename TPolicy::value_type>;
 
-            TIterator(TChoiceGenerator::TIterator indexIterator, const std::vector<const object_type*>& objects)
+            TIterator(TChoiceGenerator::TIterator indexIterator, const TStorage& objects)
                 : Objects(objects)
                 , IndexIterator(indexIterator)
             {
@@ -255,7 +259,7 @@ class TObjectChoiceGenerator {
                 value_type result;
                 result.reserve(indices.size());
                 for (auto index : indices) {
-                    result.push_back(Objects[index]);
+                    result.push_back(TPolicy::CreateObject(Objects[index]));
                 }
 
                 return result;
@@ -275,7 +279,7 @@ class TObjectChoiceGenerator {
             }
 
         private:
-            const std::vector<const object_type*>& Objects;
+            const TStorage& Objects;
             TChoiceGenerator::TIterator IndexIterator;
         };
 
@@ -294,8 +298,8 @@ class TObjectChoiceGenerator {
         }
 
     private:
-        static std::vector<const object_type*> CreateObjects(TIteratorType begin, TIteratorType end) {
-            std::vector<const object_type*> result;
+        static TStorage CreateObjects(TIteratorType begin, TIteratorType end) {
+            TStorage result;
             while (begin != end) {
                 result.push_back(&(*begin));
                 ++begin;
@@ -303,6 +307,11 @@ class TObjectChoiceGenerator {
             return result;
         }
 
-        std::vector<const object_type*> Objects;
+        TStorage Objects;
         TChoiceGenerator Generator;
 };
+
+template<typename TPolicy, typename TContainer>
+auto CreateObjectGenerator(size_t k, const TContainer& c) {
+    return TObjectChoiceGenerator<decltype(std::begin(c)), TPolicy>(k, std::begin(c), std::end(c));
+}

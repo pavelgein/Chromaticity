@@ -95,4 +95,43 @@ UNIT_TEST_SUITE(ObjectCombinationGenerator) {
 
         ASSERT(expected == result, "");
     }
+
+    UNIT_TEST(CopyPolicy) {
+        std::vector<int> s = {1, 2, 3, 4};
+        std::set<std::set<int>> result;
+        std::set<std::set<int>> expected = {
+            {1, 2},
+            {1, 3},
+            {1, 4},
+            {2, 3},
+            {2, 4},
+            {3, 4}
+        };
+
+        for (const auto& current : CreateObjectGenerator<NPolicy::TCopyPolicy<int>>(2, s)) {
+            result.insert({current.begin(), current.end()});
+        }
+
+        ASSERT(expected == result, "");
+    }
+
+    UNIT_TEST(CArray) {
+        int s[] = {1, 2, 3, 4};
+        std::set<std::set<int>> result;
+        std::set<std::set<int>> expected = {
+            {1, 2},
+            {1, 3},
+            {1, 4},
+            {2, 3},
+            {2, 4},
+            {3, 4}
+        };
+
+        for (const auto& current : CreateObjectGenerator<NPolicy::TCopyPolicy<int>>(2, s)) {
+            std::set<int> currentSet(current.begin(), current.end());
+            result.insert(std::move(currentSet));
+        }
+
+        ASSERT(expected == result, "");
+    }
 }
