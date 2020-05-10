@@ -48,4 +48,21 @@ UNIT_TEST_SUITE(Subsets) {
 
         ASSERT_EQUAL(expected, actual);
     }
+
+    UNIT_TEST(CopyPolicy) {
+        std::unordered_set<int> v = {1, 2};
+        std::set<std::set<int>> expected = {
+            {},
+            {1},
+            {2},
+            {1, 2},
+        };
+
+        std::set<std::set<int>> actual;
+        for (const auto& x: CreateSubsetGenerator<NPolicy::TCopyPolicy<int>>(v)) {
+            actual.insert({x.begin(), x.end()});
+        }
+
+        ASSERT_EQUAL(expected, actual);
+    }
 }

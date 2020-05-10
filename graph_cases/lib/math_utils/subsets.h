@@ -1,16 +1,21 @@
 #pragma once
 
+#include "policy.h"
+#include "traits.h"
+
 #include <cstddef>
 #include <vector>
 
 
-template<typename TIteratorType>
+template<typename TIteratorType, typename TPolicy = NPolicy::TPointerPolicy<typename TIteratorDereferencer<TIteratorType>::TUnreferenced>>
 class TSubsetGenerator {
     public:
-        using element_type = typename TIteratorType::value_type;
+        using element_type = typename TPolicy::value_type;
 
         class TIterator {
         public:
+            using value_type = std::vector<element_type>;
+
             TIterator(TIteratorType begin, TIteratorType end, size_t state)
                 : Begin(begin)
                 , End(end)
@@ -55,13 +60,13 @@ class TSubsetGenerator {
                 return old;
             }
 
-            std::vector<const element_type*> operator*() const {
-                std::vector<const element_type*> result;
+            value_type operator*() const {
+                value_type result;
                 size_t state = State;
                 auto iterator = Begin;
                 while (state) {
                     if (state % 2 == 1) {
-                        result.push_back(&(*iterator));
+                        result.push_back(TPolicy::CreateObject(&(*iterator)));
                     }
 
                     ++iterator;
@@ -95,3 +100,8 @@ class TSubsetGenerator {
         TIteratorType Begin;
         TIteratorType End;
 };
+
+template<typename TPolicy, typename TContainer>
+auto CreateSubsetGenerator(const TContainer& c) {
+    return TSubsetGenerator<decltype(std::begin(c)), TPolicy>(std::begin(c), std::end(c));
+}
