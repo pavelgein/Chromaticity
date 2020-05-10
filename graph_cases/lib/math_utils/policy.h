@@ -17,4 +17,4 @@ namespace NPolicy {
             return *object;
         }
     };
-};
+}
