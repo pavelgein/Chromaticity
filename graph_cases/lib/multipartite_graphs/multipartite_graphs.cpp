@@ -462,11 +462,109 @@ TDenseGraph TDenseGraph::SwapVertices(size_t componentId, size_t firstVertex, si
 }
 
 void TDenseGraph::SwapVerticesInplace(size_t componentId, size_t firstVertex, size_t secondVertex) {
+    EdgeSet = SwapVerticesInSet(EdgeSet, componentId, firstVertex, secondVertex);
+}
+
+std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdge(const TEdge& edge) const {
+    std::vector<INT> newComponents{Graph->begin(), Graph->end()};
+    newComponents.push_back(1);
+
+    TEdgeSet newEdgeSet = EdgeSet;
+    auto swapWithLast = [&newEdgeSet, this](const TVertex& vertex) mutable {
+        auto component = vertex.ComponentId;
+        auto lastInComponent = ComponentSize(component) - 1;
+        newEdgeSet = SwapVerticesInSet(newEdgeSet, component, vertex.VertexId, lastInComponent);
+
+        return TVertex(component, lastInComponent);
+    };
+
+    TVertex first = swapWithLast(edge.First);
+    TVertex second = swapWithLast(edge.Second);
+    TVertex newVertex(newComponents.size() - 1, 0);
+
+    TEdge oldEdge(first, second);
+
+    TCompleteGraph tempGraph(newComponents);
+    TDenseGraph tempDenseGraph(tempGraph, newEdgeSet);
+
+    TEdgeSet finalEdgeSet;
+    for (const auto& edge : newEdgeSet) {
+        if (oldEdge == edge) {
+            continue;
+        }
+
+        if (edge.First == first) {
+            TEdge otherEdge(second, edge.Second);
+            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+                finalEdgeSet.emplace(newVertex, edge.Second);
+            }
+        } else if (edge.First == second) {
+            TEdge otherEdge(first, edge.Second);
+            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+                finalEdgeSet.emplace(newVertex, edge.Second);
+            }
+        } else if (edge.Second == first) {
+            TEdge otherEdge(second, edge.First);
+            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+                finalEdgeSet.emplace(edge.First, newVertex);
+            }
+        } else if (edge.Second == second) {
+            TEdge otherEdge(first, edge.First);
+            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+                finalEdgeSet.emplace(edge.First, newVertex);
+            }
+        } else {
+            finalEdgeSet.emplace(edge);
+        }
+    }
+
+    auto removeLastVertex = [&finalEdgeSet, &newComponents](size_t componentId) mutable {
+       --newComponents[componentId];
+       if (newComponents[componentId] == 0) {
+            TEdgeSet newEdgeSet;
+            for (const auto& edge : finalEdgeSet) {
+                if (edge.First.ComponentId == componentId) {
+                    newEdgeSet.emplace(TVertex(edge.First.ComponentId - 1, edge.First.VertexId), edge.Second);
+                } else if (edge.Second.ComponentId == componentId) {
+                    newEdgeSet.emplace(edge.First, TVertex(edge.Second.ComponentId - 1, edge.Second.VertexId));
+                } else {
+                    newEdgeSet.emplace(edge);
+                }
+            }
+       }
+    };
+
+    removeLastVertex(edge.First.ComponentId);
+    removeLastVertex(edge.Second.ComponentId);
+
+    {
+        auto firstComponent = edge.First.ComponentId;
+        auto secondComponent = edge.Second.ComponentId;
+        if (firstComponent >= secondComponent) {
+            std::swap(firstComponent, secondComponent);
+        }
+
+        if (newComponents[firstComponent] == 0) {
+            newComponents.erase(newComponents.begin() + firstComponent);
+            --secondComponent;
+        }
+
+        if (newComponents[secondComponent] == 0) {
+            newComponents.erase(newComponents.begin() + secondComponent);
+        }
+    }
+
+    auto newCompleteGraph = std::make_unique<TCompleteGraph>(std::move(newComponents));
+    TDenseGraph newGraph(*newCompleteGraph, finalEdgeSet);
+    return {newGraph, std::move(newCompleteGraph)};
+}
+
+TEdgeSet TDenseGraph::SwapVerticesInSet(const TEdgeSet& edgeSet, size_t componentId, size_t firstVertex, size_t secondVertex) {
     TVertex first(componentId, firstVertex);
     TVertex second(componentId, secondVertex);
 
     TEdgeSet newEdgeSet;
-    for (const auto& edge : EdgeSet) {
+    for (const auto& edge : edgeSet) {
         if (edge.First == first) {
             newEdgeSet.emplace(second, edge.Second);
         } else if (edge.Second == first) {
@@ -480,7 +578,15 @@ void TDenseGraph::SwapVerticesInplace(size_t componentId, size_t firstVertex, si
         }
     }
 
-    EdgeSet.swap(newEdgeSet);
+    return newEdgeSet;
+}
+
+INT TDenseGraph::ComponentSize(size_t component) const {
+    return Graph->ComponentSize(component);
+}
+
+size_t TDenseGraph::ComponentsNumber() const {
+    return Graph->ComponentsNumber();
 }
 }
 

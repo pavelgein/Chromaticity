@@ -18,6 +18,10 @@ namespace NMultipartiteGraphs {
         return (ComponentId == other.ComponentId) && (VertexId == other.VertexId);
     }
 
+    bool TVertex::operator!=(const TVertex& other) const {
+        return !(*this == other);
+    }
+
 
     TEdge::TEdge()
         : First()

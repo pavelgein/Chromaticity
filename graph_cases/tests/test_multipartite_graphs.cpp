@@ -245,3 +245,62 @@ UNIT_TEST_SUITE(TestSwapVertices) {
         }
     }
 }
+
+UNIT_TEST_SUITE(TestContractEdge) {
+    UNIT_TEST(Simple) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({3, 3, 1});
+        TEdgeSet edges = {
+            TEdge(TVertex(0, 0), TVertex(1, 0)),
+            TEdge(TVertex(0, 0), TVertex(2, 0)),
+        };
+
+        TDenseGraph denseGraph(graph, edges);
+
+        {
+            std::vector<TEdge> contractedEdges = {
+                {TVertex(0, 0), TVertex(1, 0)},
+                {TVertex(1, 0), TVertex(0, 0)}
+            };
+            for (const auto &edge : contractedEdges) {
+                auto[newDenseGraph, newGraph] = denseGraph.ContractEdge(edge);
+                ASSERT_EQUAL(newGraph->ComponentsNumber(), 4);
+                ASSERT_EQUAL(newGraph->ComponentSize(0), 2);
+                ASSERT_EQUAL(newGraph->ComponentSize(1), 2);
+                ASSERT_EQUAL(newGraph->ComponentSize(2), 1);
+                ASSERT_EQUAL(newGraph->ComponentSize(3), 1);
+
+                TEdgeSet newEdges = {};
+                ASSERT_EQUAL(newDenseGraph.DeletedEdges(), newEdges);
+            }
+        }
+
+        {
+            std::vector<TEdge> contractedEdges = {
+                {TVertex(0, 0), TVertex(2, 0)},
+                {TVertex(2, 0), TVertex(0, 0)}
+            };
+            for (const auto& edge : contractedEdges) {
+                auto [newDenseGraph, newGraph] = denseGraph.ContractEdge(edge);
+                ASSERT_EQUAL(newGraph->ComponentsNumber(), 3);
+                ASSERT_EQUAL(newGraph->ComponentSize(0), 2);
+                ASSERT_EQUAL(newGraph->ComponentSize(1), 3);
+                ASSERT_EQUAL(newGraph->ComponentSize(2), 1);
+
+                TEdgeSet newEdges = {};
+                ASSERT_EQUAL(newDenseGraph.DeletedEdges(), newEdges);
+            }
+        }
+
+        {
+            auto [newDenseGraph, newGraph] = denseGraph.ContractEdge({TVertex(0, 1), TVertex(1, 1)});
+            ASSERT_EQUAL(newGraph->ComponentsNumber(), 4);
+            ASSERT_EQUAL(newGraph->ComponentSize(0), 2);
+            ASSERT_EQUAL(newGraph->ComponentSize(1), 2);
+            ASSERT_EQUAL(newGraph->ComponentSize(2), 1);
+            ASSERT_EQUAL(newGraph->ComponentSize(3), 1);
+
+            ASSERT_EQUAL(newDenseGraph.DeletedEdges(), denseGraph.DeletedEdges());
+        }
+    }
+}

@@ -21,6 +21,15 @@ public:
 
     TCompleteGraph& operator=(const TCompleteGraph& other) = default;
 
+    TCompleteGraph(std::vector<INT> components)
+        : Components(std::move(components))
+        , I3Invariant_(0)
+        , I4Invariant_(0)
+        , PtInvariant_(0)
+        , Edges_(Sigma(2, Components))
+    {
+    }
+
     template<class TInputIterator>
     TCompleteGraph(TInputIterator begin, TInputIterator end)
         : Components(begin, end)
@@ -123,6 +132,10 @@ public:
     void SwapVerticesInplace(size_t componentId, size_t firstVertex, size_t secondVertex);
 
     TDenseGraph SwapVertices(size_t componentId, size_t firstVertex, size_t secondVertex) const;
+
+    std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> ContractEdge(const TEdge& edge) const;
+
+    static TEdgeSet SwapVerticesInSet(const TEdgeSet& edgeSet, size_t componentId, size_t firstVertex, size_t secondVertex);
 
     ~TDenseGraph() override = default;
 

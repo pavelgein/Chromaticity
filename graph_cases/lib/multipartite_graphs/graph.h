@@ -16,6 +16,7 @@ namespace NMultipartiteGraphs {
         TVertex();
 
         bool operator==(const TVertex& other) const;
+        bool operator!=(const TVertex& other) const;
     };
 
     struct TEdge {
