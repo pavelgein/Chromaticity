@@ -451,6 +451,34 @@ TDenseGraph::TDenseGraph(const TDenseGraph& other)
     , EdgeSet(other.EdgeSet)
 {
 }
+
+TDenseGraph TDenseGraph::SwapVertices(size_t componentId, size_t firstVertex, size_t secondVertex) const {
+    TDenseGraph other(*this);
+    other.SwapVerticesInplace(componentId, firstVertex, secondVertex);
+    return other;
+}
+
+void TDenseGraph::SwapVerticesInplace(size_t componentId, size_t firstVertex, size_t secondVertex) {
+    TVertex first(componentId, firstVertex);
+    TVertex second(componentId, secondVertex);
+
+    TEdgeSet newEdgeSet;
+    for (const auto& edge : EdgeSet) {
+        if (edge.First == first) {
+            newEdgeSet.emplace(second, edge.Second);
+        } else if (edge.Second == first) {
+            newEdgeSet.emplace(edge.First, second);
+        } else if (edge.First == second) {
+            newEdgeSet.emplace(first, edge.Second);
+        } else if (edge.Second == second) {
+            newEdgeSet.emplace(edge.First, first);
+        } else {
+            newEdgeSet.emplace(edge);
+        }
+    }
+
+    EdgeSet.swap(newEdgeSet);
+}
 }
 
 

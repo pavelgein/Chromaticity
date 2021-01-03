@@ -120,6 +120,10 @@ public:
         return EdgeSet.find(edge) != EdgeSet.end();
     }
 
+    void SwapVerticesInplace(size_t componentId, size_t firstVertex, size_t secondVertex);
+
+    TDenseGraph SwapVertices(size_t componentId, size_t firstVertex, size_t secondVertex) const;
+
     ~TDenseGraph() override = default;
 
 private:
