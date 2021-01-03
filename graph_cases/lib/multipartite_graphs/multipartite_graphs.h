@@ -130,9 +130,6 @@ private:
     const TCompleteGraph* Graph;
     TEdgeSet EdgeSet;
 
-    mutable INT Vertices_ = 0;
-    mutable INT Edges_ = 0;
-    mutable INT I2Invariant_ = 0;
     mutable INT I3Invariant_ = 0;
     mutable INT I4Invariant_ = 0;
     mutable INT PtInvariant_ = 0;

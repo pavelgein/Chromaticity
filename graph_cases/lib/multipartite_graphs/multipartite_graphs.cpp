@@ -209,7 +209,7 @@ TDenseGraph::TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet)
 }
 
 INT TDenseGraph::VerticesCount() const {
-    return SumRange(Graph->begin(), Graph->end());
+    return Graph->VerticesCount();
 }
 
 INT TDenseGraph::I2Invariant() const {
@@ -272,7 +272,10 @@ INT TDenseGraph::ComputeXi2AndXi3() const {
 }
 
 INT TDenseGraph::I4Invariant() const {
-    return ComputeI4TwoParts() + ComputeI4ThreeParts();
+    if (I4Invariant_ == 0) {
+        I4Invariant_ = ComputeI4TwoParts() + ComputeI4ThreeParts();
+    }
+    return I4Invariant_;
 }
 
 INT TDenseGraph::ComputeI4TwoParts() const {
