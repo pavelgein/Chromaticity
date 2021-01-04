@@ -9,6 +9,7 @@ SET(SOURCE_FILES
     test_subsets.cpp
     test_autoindexer.cpp
     test_optparser.cpp
+    test_singleton.cpp
 )
 
 SET(LIBRARIES
