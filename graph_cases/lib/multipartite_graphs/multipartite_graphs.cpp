@@ -13,6 +13,7 @@
 #include <ostream>
 #include <unordered_map>
 #include <queue>
+#include <iostream>
 
 
 namespace {
@@ -205,7 +206,11 @@ std::vector<TEdge> TCompleteGraph::GenerateAllEdges() const {
 }
 
 INT TCompleteGraph::CountAcyclicOrientations() const {
-    return TSingleton<TCompleteGraphAcyclicOrientationsCounter>::Instance()(Components);
+    if (AcyclicOrientations_ == 0) {
+       AcyclicOrientations_ = TSingleton<TCompleteGraphAcyclicOrientationsCounter>::Instance()(Components);
+    }
+
+    return AcyclicOrientations_;
 }
 
 
@@ -480,7 +485,9 @@ std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdg
     auto swapWithLast = [&newEdgeSet, this](const TVertex& vertex) mutable {
         auto component = vertex.ComponentId;
         auto lastInComponent = ComponentSize(component) - 1;
-        newEdgeSet = SwapVerticesInSet(newEdgeSet, component, vertex.VertexId, lastInComponent);
+        if (lastInComponent != vertex.VertexId) {
+            newEdgeSet = SwapVerticesInSet(newEdgeSet, component, vertex.VertexId, lastInComponent);
+        }
 
         return TVertex(component, lastInComponent);
     };
@@ -501,23 +508,19 @@ std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdg
         }
 
         if (edge.First == first) {
-            TEdge otherEdge(second, edge.Second);
-            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+            if (!tempDenseGraph.IsAdjacent(second, edge.Second)) {
                 finalEdgeSet.emplace(newVertex, edge.Second);
             }
         } else if (edge.First == second) {
-            TEdge otherEdge(first, edge.Second);
-            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+            if (!tempDenseGraph.IsAdjacent(first, edge.Second)) {
                 finalEdgeSet.emplace(newVertex, edge.Second);
             }
         } else if (edge.Second == first) {
-            TEdge otherEdge(second, edge.First);
-            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+            if (!tempDenseGraph.IsAdjacent(second, edge.First)) {
                 finalEdgeSet.emplace(edge.First, newVertex);
             }
         } else if (edge.Second == second) {
-            TEdge otherEdge(first, edge.First);
-            if (tempDenseGraph.IsEdgeDeleted(otherEdge)) {
+            if (!tempDenseGraph.IsAdjacent(first, edge.First)) {
                 finalEdgeSet.emplace(edge.First, newVertex);
             }
         } else {
@@ -595,8 +598,22 @@ INT TDenseGraph::ComponentSize(size_t component) const {
 size_t TDenseGraph::ComponentsNumber() const {
     return Graph->ComponentsNumber();
 }
-}
 
+
+INT TDenseGraph::CountAcyclicOrientations() const {
+    if (EdgeSet.empty()) {
+        return Graph->CountAcyclicOrientations();
+    }
+
+    TEdgeSet newEdgeSet = EdgeSet;
+    TEdge firstEdge = *newEdgeSet.begin();
+    newEdgeSet.erase(newEdgeSet.begin());
+
+    TDenseGraph newGraph(*Graph, std::move(newEdgeSet));
+    auto [contracted, baseGraph] = ContractEdge(firstEdge);
+    return newGraph.CountAcyclicOrientations() - contracted.CountAcyclicOrientations();
+}
+}
 
 std::ostream& operator<<(std::ostream& outp, const NMultipartiteGraphs::TCompleteGraph& graph) {
     outp << "Graph(";

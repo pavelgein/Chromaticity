@@ -27,6 +27,7 @@ public:
         , I3Invariant_(0)
         , I4Invariant_(0)
         , PtInvariant_(0)
+        , AcyclicOrientations_(0)
         , Edges_(Sigma(2, Components))
     {
     }
@@ -37,6 +38,7 @@ public:
         , I3Invariant_(0)
         , I4Invariant_(0)
         , PtInvariant_(0)
+        , AcyclicOrientations_(0)
         , Edges_(Sigma(2, Components))
     {
     }
@@ -52,7 +54,7 @@ public:
 
     INT PtInvariant() const override;
 
-    INT CountAcyclicOrientations() const;
+    INT CountAcyclicOrientations() const override;
 
     bool operator==(const TCompleteGraph& other) const;
 
@@ -71,10 +73,11 @@ private:
     INT CalculatePtInvariant() const;
 
     std::vector<INT> Components;
-    mutable INT I3Invariant_;
-    mutable INT I4Invariant_;
-    mutable INT PtInvariant_;
-    INT Edges_;
+    mutable INT I3Invariant_ = 0;
+    mutable INT I4Invariant_ = 0;
+    mutable INT PtInvariant_ = 0;
+    mutable INT AcyclicOrientations_ = 0;
+    INT Edges_ = 0;
 
 
     INT ComputeI4() const;
@@ -99,10 +102,11 @@ public:
 
     TDenseGraph(const TDenseGraph& other);
 
-    void operator=(TDenseGraph&& other) {
+    TDenseGraph& operator=(TDenseGraph&& other) noexcept {
         Graph = other.Graph;
         EdgeSet = std::move(other.EdgeSet);
         other.Graph = nullptr;
+        return *this;
     }
 
     TDenseGraph(const TCompleteGraph& graph, TEdgeSet edgeSet);
@@ -117,6 +121,8 @@ public:
 
     INT PtInvariant() const override;
 
+    INT CountAcyclicOrientations() const override;
+
     INT ComponentSize(size_t component) const;
     size_t ComponentsNumber() const;
 
@@ -126,6 +132,10 @@ public:
 
     const TEdgeSet& DeletedEdges() const {
         return EdgeSet;
+    }
+
+    bool IsAdjacent(const TVertex& first, const TVertex& second) const {
+        return (first.ComponentId != second.ComponentId) && !IsEdgeDeleted({first, second});
     }
 
     bool IsEdgeDeleted(const TEdge& edge) const {

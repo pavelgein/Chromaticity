@@ -47,6 +47,8 @@ namespace NMultipartiteGraphs {
 
         virtual INT PtInvariant() const = 0;
 
+        virtual INT CountAcyclicOrientations() const = 0;
+
         virtual ~IGraph() = default;
     };
 

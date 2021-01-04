@@ -302,6 +302,21 @@ UNIT_TEST_SUITE(TestContractEdge) {
             ASSERT_EQUAL(newDenseGraph.DeletedEdges(), denseGraph.DeletedEdges());
         }
     }
+
+    UNIT_TEST(Simple2) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({2, 2});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(1, 0)},
+            {TVertex(0, 0), TVertex(1, 1)},
+        };
+
+        auto edge = TEdge({0, 0}, {1,0});
+        TDenseGraph denseGraph(graph, edges);
+        auto [contracted, base] = denseGraph.ContractEdge(edge);
+        ASSERT_EQUAL(*base, TCompleteGraph({1, 1, 1}));
+        ASSERT_EQUAL(contracted.DeletedEdges(), TEdgeSet({{TVertex(1, 0), TVertex(2, 0)}}));
+    }
 }
 
 UNIT_TEST_SUITE(TestAcyclicOrientations) {
@@ -328,5 +343,29 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
     UNIT_TEST(TestThreeParts) {
         NMultipartiteGraphs::TCompleteGraph graph({7, 2, 2});
         ASSERT_EQUAL(graph.CountAcyclicOrientations(), 1682766);
+    }
+
+    UNIT_TEST(TestDense) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({2, 1});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(1, 0)},
+        };
+        NMultipartiteGraphs::TDenseGraph denseGraph(graph, edges);
+        denseGraph.CountAcyclicOrientations();
+        ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 2);
+    }
+
+    UNIT_TEST(TestDense2) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({2, 2});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(1, 0)},
+            {TVertex(0, 0), TVertex(1, 1)},
+        };
+
+        ASSERT_EQUAL(graph.CountAcyclicOrientations(), 14);
+        NMultipartiteGraphs::TDenseGraph denseGraph(graph, edges);
+        ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 4);
     }
 }
