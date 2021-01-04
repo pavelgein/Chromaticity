@@ -35,7 +35,9 @@ UNIT_TEST_SUITE(TestSingleton) {
             (void*)(&counter);
         }));
 
-        ASSERT_EQUAL(TCounter::C_, 0);
+        executer->Stop();
+
+        ASSERT_EQUAL(TCounter::C_, 1);
     }
 }
 
