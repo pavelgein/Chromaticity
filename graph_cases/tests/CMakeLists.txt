@@ -10,9 +10,11 @@ SET(SOURCE_FILES
     test_autoindexer.cpp
     test_optparser.cpp
     test_singleton.cpp
+    test_binomial_coefficients.cpp
 )
 
 SET(LIBRARIES
+    binomial_coefficients
     test_system
     executer
     multithread_writer
