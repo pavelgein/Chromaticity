@@ -5,6 +5,7 @@ SET(SOURCE_FILES
 
 SET(LIBRARIES
     autoindexer
+    binomial_coefficients
 )
 
 ADD_LIBRARY(multipartite_graphs STATIC ${SOURCE_FILES})

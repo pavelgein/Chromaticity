@@ -11,6 +11,18 @@ public:
     TBinomialCoefficientCalculator() = default;
 
     long long operator()(unsigned int n, unsigned int k) {
+        if ((k == 0) || (k == n)) {
+            return 1;
+        }
+
+        if ((k == 1) || (k + 1 == n)) {
+            return n;
+        }
+
+        if ((k == 2) || (k + 2 == n)) {
+            return n * (n - 1) / 2;
+        }
+
         if (n < Cache.size()) {
             return Cache[n][k];
         }

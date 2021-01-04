@@ -8,11 +8,6 @@
 #include <vector>
 #include <type_traits>
 
-template<typename TInt>
-TInt c_n_2(TInt n) {
-    return n * (n - 1) / 2;
-}
-
 
 class TPairGenerator {
 public:

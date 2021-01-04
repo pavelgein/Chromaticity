@@ -1,6 +1,7 @@
 #include "multipartite_graphs.h"
 
 #include <autoindexer/autoindexer.h>
+#include <binomial_coefficients/binomial_coefficients.h>
 
 #include "math_utils/subsets.h"
 #include "math_utils/combinatorics.h"
@@ -81,7 +82,7 @@ INT TCompleteGraph::ComputeI4() const {
     INT ans = 0;
     for (size_t i = 0; i != Components.size() - 1; ++i) {
         for (size_t j = i + 1; j != Components.size(); ++j) {
-            ans += c_n_2(Components[i]) * c_n_2(Components[j]);
+            ans += BinomialCoefficient(Components[i], 2) * BinomialCoefficient(Components[j], 2);
         }
     }
     return ans;
