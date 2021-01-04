@@ -52,6 +52,8 @@ public:
 
     INT PtInvariant() const override;
 
+    INT CountAcyclicOrientations() const;
+
     bool operator==(const TCompleteGraph& other) const;
 
     INT ComponentSize(size_t component) const;

@@ -1,7 +1,9 @@
 #include "multipartite_graphs.h"
+#include "acyclic_orintations.h"
 
 #include <autoindexer/autoindexer.h>
 #include <binomial_coefficients/binomial_coefficients.h>
+#include <singleton/singleton.h>
 
 #include "math_utils/subsets.h"
 #include "math_utils/combinatorics.h"
@@ -200,6 +202,10 @@ std::vector<TEdge> TCompleteGraph::GenerateAllEdges() const {
     }
 
     return edges;
+}
+
+INT TCompleteGraph::CountAcyclicOrientations() const {
+    return TSingleton<TCompleteGraphAcyclicOrientationsCounter>::Instance()(Components);
 }
 
 

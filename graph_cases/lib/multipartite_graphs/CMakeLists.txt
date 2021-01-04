@@ -1,6 +1,7 @@
 SET(SOURCE_FILES
     multipartite_graphs.cpp
     graph.cpp
+    acyclic_orintations.cpp
 )
 
 SET(LIBRARIES

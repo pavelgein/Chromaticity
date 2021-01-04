@@ -225,7 +225,6 @@ UNIT_TEST_SUITE(TestSwapVertices) {
         TDenseGraph graph(completeGraph, edges);
 
         {
-
             TEdgeSet newEdges = {
                 TEdge(TVertex(0, 2), TVertex(1, 0)),
                 TEdge(TVertex(0, 1), TVertex(1, 0)),
@@ -302,5 +301,32 @@ UNIT_TEST_SUITE(TestContractEdge) {
 
             ASSERT_EQUAL(newDenseGraph.DeletedEdges(), denseGraph.DeletedEdges());
         }
+    }
+}
+
+UNIT_TEST_SUITE(TestAcyclicOrientations) {
+    UNIT_TEST(TestOnePart) {
+        NMultipartiteGraphs::TCompleteGraph graph({5});
+        ASSERT_EQUAL(graph.CountAcyclicOrientations(), 1);
+    }
+
+    UNIT_TEST(TestTwoParts) {
+        NMultipartiteGraphs::TCompleteGraph graph({1, 1});
+        ASSERT_EQUAL(graph.CountAcyclicOrientations(), 2);
+    }
+
+    UNIT_TEST(TestTwoParts2) {
+        NMultipartiteGraphs::TCompleteGraph graph({2, 1});
+        ASSERT_EQUAL(graph.CountAcyclicOrientations(), 4);
+    }
+
+    UNIT_TEST(TestTwoParts3) {
+        NMultipartiteGraphs::TCompleteGraph graph({3, 4});
+        ASSERT_EQUAL(graph.CountAcyclicOrientations(), 1066);
+    }
+
+    UNIT_TEST(TestThreeParts) {
+        NMultipartiteGraphs::TCompleteGraph graph({7, 2, 2});
+        ASSERT_EQUAL(graph.CountAcyclicOrientations(), 1682766);
     }
 }

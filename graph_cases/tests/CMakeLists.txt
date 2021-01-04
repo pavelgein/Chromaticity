@@ -11,6 +11,7 @@ SET(SOURCE_FILES
     test_optparser.cpp
     test_singleton.cpp
     test_binomial_coefficients.cpp
+    test_factorial.cpp
 )
 
 SET(LIBRARIES
@@ -21,6 +22,7 @@ SET(LIBRARIES
     math_utils
     multipartite_graphs
     optparser
+    factorial
 )
 
 ADD_EXECUTABLE(tests ${SOURCE_FILES})

@@ -1,0 +1,3 @@
+SET(SOURCE_FILES factorial.cpp)
+
+ADD_LIBRARY(factorial STATIC ${SOURCE_FILES})
