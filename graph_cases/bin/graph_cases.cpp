@@ -222,6 +222,7 @@ struct TOptions {
         parser.AddLongOption("thread-count").Store(&opts.ThreadCount).Default("6");
         parser.AddLongOption("output-file").Store(&opts.OutputFile).Default("");
         parser.AddLongOption("compute-all").SetFlag(&opts.Options.ComputeAll).Default("false");
+        parser.AddLongOption("write-all-edges").SetFlag(&opts.Options.WriteEdgeSet).Default("false");
 
         parser.Parse(argc, argv);
 
