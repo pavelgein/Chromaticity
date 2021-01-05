@@ -477,11 +477,9 @@ void TDenseGraph::SwapVerticesInplace(size_t componentId, size_t firstVertex, si
 }
 
 std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdge(const TEdge& edge) const {
-//    std::cerr << "edge to contract: " << edge << "\n";
     std::vector<INT> newComponents;
-    for (size_t i = 0; i != Graph->ComponentsNumber(); ++i) {
-        newComponents.push_back(Graph->ComponentSize(i));
-    }
+    newComponents.reserve(ComponentsNumber() + 1);
+    newComponents.insert(newComponents.begin(), Graph->begin(), Graph->end());
     newComponents.push_back(1);
 
     TEdgeSet newEdgeSet = EdgeSet;
