@@ -384,7 +384,7 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
         ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 4);
     }
 
-    UNIT_TEST(TestDense3) {
+    /*UNIT_TEST(TestDense3) {
         using namespace NMultipartiteGraphs;
         for (size_t i = 0; i != 1000; ++i) {
             TCompleteGraph graph({4, 4, 3});
@@ -402,7 +402,7 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
             TDenseGraph denseGraph(graph, EdgeSet);
             denseGraph.CountAcyclicOrientations();
         }
-    }
+    }*/
 }
 
 UNIT_TEST_SUITE(TestDenseGraph) {
