@@ -32,7 +32,7 @@ UNIT_TEST_SUITE(TestSingleton) {
         auto executer = CreateExecuter(10, 1000, nullptr);
         executer->Add(CreateTask([](){
             auto& counter = TSingleton<TCounter>::Instance();
-            (void*)(&counter);
+            (void)(counter);
         }));
 
         executer->Stop();
