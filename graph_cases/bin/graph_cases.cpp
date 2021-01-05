@@ -1,7 +1,6 @@
 #include <fstream>
 #include <functional>
 #include <iostream>
-#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -48,9 +47,9 @@ struct TInvariantChecker {
 
     TInvariantChecker() = default;
 
-    TInvariantChecker(std::string name, TChecker checker)
+    TInvariantChecker(std::string name, TChecker checker) noexcept
         : Name(std::move(name))
-        , Checker(checker)
+        , Checker(std::move(checker))
     {
     }
 };
@@ -103,9 +102,9 @@ class TCompareGraphsTask : public ITask {
 public:
     TCompareGraphsTask(const NMultipartiteGraphs::TCompleteGraph& source, TWriter& writer, NMultipartiteGraphs::TDenseGraph target, TCompareOptions options)
         : Source(source)
-        , Target(target)
+        , Target(std::move(target))
         , Writer(writer)
-        , Options(std::move(options))
+        , Options(options)
     {
     }
 
@@ -208,7 +207,7 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
 struct TOptions {
     std::vector<INT> Source;
     std::vector<INT> Target;
-    int ThreadCount;
+    int ThreadCount = 1;
     std::string OutputFile;
 
     TCompareOptions Options;
