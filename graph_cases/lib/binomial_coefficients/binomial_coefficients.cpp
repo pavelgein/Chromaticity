@@ -2,6 +2,7 @@
 
 #include "singleton/singleton.h"
 
+#include <cassert>
 #include <vector>
 #include <deque>
 #include <mutex>
