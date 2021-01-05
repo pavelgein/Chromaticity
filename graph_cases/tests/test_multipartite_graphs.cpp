@@ -317,6 +317,21 @@ UNIT_TEST_SUITE(TestContractEdge) {
         ASSERT_EQUAL(*base, TCompleteGraph({1, 1, 1}));
         ASSERT_EQUAL(contracted.DeletedEdges(), TEdgeSet({{TVertex(1, 0), TVertex(2, 0)}}));
     }
+
+    UNIT_TEST(Simple3) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({1, 1, 2});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(1,0)},
+            {TVertex(0, 0), TVertex(2,0)},
+        };
+
+        TDenseGraph denseGraph(graph, edges);
+        TEdge edge(TVertex(0, 0), TVertex(1, 0));
+        auto [newDensGraph, newBaseGraph] = denseGraph.ContractEdge(edge);
+        ASSERT_EQUAL(*newBaseGraph, TCompleteGraph({2, 1}));
+        ASSERT_EQUAL(newDensGraph.DeletedEdges(), TEdgeSet{});
+    }
 }
 
 UNIT_TEST_SUITE(TestAcyclicOrientations) {
@@ -367,5 +382,48 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
         ASSERT_EQUAL(graph.CountAcyclicOrientations(), 14);
         NMultipartiteGraphs::TDenseGraph denseGraph(graph, edges);
         ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 4);
+    }
+
+    UNIT_TEST(TestDense3) {
+        using namespace NMultipartiteGraphs;
+        for (size_t i = 0; i != 1000; ++i) {
+            TCompleteGraph graph({4, 4, 3});
+            TEdgeSet EdgeSet = {
+                {TVertex(0, 1), TVertex(1, 2)},
+                {TVertex(0, 0), TVertex(1, 3)},
+                {TVertex(0, 1), TVertex(1, 3)},
+                {TVertex(0, 0), TVertex(1, 2)},
+                {TVertex(0, 1), TVertex(1, 0)},
+                {TVertex(0, 0), TVertex(1, 1)},
+                {TVertex(0, 1), TVertex(1, 1)},
+                {TVertex(0, 0), TVertex(1, 0)},
+            };
+
+            TDenseGraph denseGraph(graph, EdgeSet);
+            denseGraph.CountAcyclicOrientations();
+        }
+    }
+}
+
+UNIT_TEST_SUITE(TestDenseGraph) {
+    UNIT_TEST(TestMoveConstructor) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({4, 4, 3});
+        TEdgeSet edgeSet = {
+            {TVertex(0, 1), TVertex(1, 2)},
+            {TVertex(0, 0), TVertex(1, 3)},
+            {TVertex(0, 1), TVertex(1, 3)},
+            {TVertex(0, 0), TVertex(1, 2)},
+            {TVertex(0, 1), TVertex(1, 0)},
+            {TVertex(0, 0), TVertex(1, 1)},
+            {TVertex(0, 1), TVertex(1, 1)},
+            {TVertex(0, 0), TVertex(1, 0)},
+        };
+
+        TDenseGraph denseGraph(graph, edgeSet);
+        TDenseGraph newDenseGraph(std::move(denseGraph));
+
+        ASSERT_EQUAL(newDenseGraph.DeletedEdges(), edgeSet);
+        ASSERT_EQUAL(newDenseGraph.BaseGraph(), &graph);
     }
 }

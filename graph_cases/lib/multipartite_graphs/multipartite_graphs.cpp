@@ -477,7 +477,11 @@ void TDenseGraph::SwapVerticesInplace(size_t componentId, size_t firstVertex, si
 }
 
 std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdge(const TEdge& edge) const {
-    std::vector<INT> newComponents{Graph->begin(), Graph->end()};
+//    std::cerr << "edge to contract: " << edge << "\n";
+    std::vector<INT> newComponents;
+    for (size_t i = 0; i != Graph->ComponentsNumber(); ++i) {
+        newComponents.push_back(Graph->ComponentSize(i));
+    }
     newComponents.push_back(1);
 
     TEdgeSet newEdgeSet = EdgeSet;
@@ -527,24 +531,28 @@ std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdg
         }
     }
 
-    auto removeLastVertex = [&finalEdgeSet, &newComponents](size_t componentId) mutable {
+    auto removeLastVertex = [](std::vector<INT>& newComponents, size_t componentId, const TEdgeSet& finalEdgeSet) mutable {
        --newComponents[componentId];
        if (newComponents[componentId] == 0) {
             TEdgeSet newEdgeSet;
             for (const auto& edge : finalEdgeSet) {
-                if (edge.First.ComponentId == componentId) {
+                if (edge.First.ComponentId >= componentId) {
                     newEdgeSet.emplace(TVertex(edge.First.ComponentId - 1, edge.First.VertexId), edge.Second);
-                } else if (edge.Second.ComponentId == componentId) {
+                } else if (edge.Second.ComponentId >= componentId) {
                     newEdgeSet.emplace(edge.First, TVertex(edge.Second.ComponentId - 1, edge.Second.VertexId));
                 } else {
                     newEdgeSet.emplace(edge);
                 }
             }
+
+            return newEdgeSet;
        }
+
+       return finalEdgeSet;
     };
 
-    removeLastVertex(edge.First.ComponentId);
-    removeLastVertex(edge.Second.ComponentId);
+    finalEdgeSet = removeLastVertex(newComponents, edge.First.ComponentId, finalEdgeSet);
+    finalEdgeSet = removeLastVertex(newComponents, edge.Second.ComponentId, finalEdgeSet);
 
     {
         auto firstComponent = edge.First.ComponentId;
@@ -600,6 +608,7 @@ size_t TDenseGraph::ComponentsNumber() const {
 
 
 INT TDenseGraph::CountAcyclicOrientations() const {
+//    std::cerr << EdgeSet.size() << std::endl;
     if (EdgeSet.empty()) {
         return Graph->CountAcyclicOrientations();
     }
@@ -608,9 +617,13 @@ INT TDenseGraph::CountAcyclicOrientations() const {
     TEdge firstEdge = *newEdgeSet.begin();
     newEdgeSet.erase(newEdgeSet.begin());
 
-    TDenseGraph newGraph(*Graph, std::move(newEdgeSet));
-    auto [contracted, baseGraph] = ContractEdge(firstEdge);
-    return newGraph.CountAcyclicOrientations() - contracted.CountAcyclicOrientations();
+    TDenseGraph newGraph(*Graph, newEdgeSet);
+    auto pair = ContractEdge(firstEdge);
+
+    auto withEdge = newGraph.CountAcyclicOrientations();
+    auto contractedOrientationsCount = pair.first.CountAcyclicOrientations();
+
+    return withEdge - contractedOrientationsCount;
 }
 }
 

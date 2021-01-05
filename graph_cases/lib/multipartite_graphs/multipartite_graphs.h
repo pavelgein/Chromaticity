@@ -138,6 +138,10 @@ public:
         return EdgeSet;
     }
 
+    const TCompleteGraph* BaseGraph() const {
+        return Graph;
+    }
+
     bool IsAdjacent(const TVertex& first, const TVertex& second) const {
         return (first.ComponentId != second.ComponentId) && !IsEdgeDeleted({first, second});
     }
