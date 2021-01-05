@@ -58,7 +58,8 @@ struct TInvariantChecker {
 static TInvariantChecker checkers[] = {
     {"I3", &NMultipartiteGraphs::IGraph::I3Invariant},
     {"I4", &NMultipartiteGraphs::IGraph::I4Invariant},
-    {"PT", &NMultipartiteGraphs::IGraph::PtInvariant}
+    {"PT", &NMultipartiteGraphs::IGraph::PtInvariant},
+    {"Acyclic", &NMultipartiteGraphs::IGraph::CountAcyclicOrientations},
 };
 
 void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp, bool computeAll=true) {
