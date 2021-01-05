@@ -16,7 +16,7 @@
 
 
 namespace {
-bool IsAdjanced(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
+bool IsAdjacent(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
     return (first.First == second.First) ||
         (first.First == second.Second) ||
         (first.Second == second.First) ||
@@ -68,7 +68,7 @@ bool ExactlyOneCommonComponent(const NMultipartiteGraphs::TEdge& first, const NM
 
 
 bool IsXi2Subgraph(const NMultipartiteGraphs::TEdge& first, const NMultipartiteGraphs::TEdge& second) {
-    return IsAdjanced(first, second) &&
+    return IsAdjacent(first, second) &&
            ExactlyOneCommonComponent(first, second);
 }
 }
