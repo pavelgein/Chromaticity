@@ -536,13 +536,17 @@ std::pair<TDenseGraph, std::unique_ptr<TCompleteGraph>> TDenseGraph::ContractEdg
        if (newComponents[componentId] == 0) {
             TEdgeSet newEdgeSet;
             for (const auto& edge : finalEdgeSet) {
-                if (edge.First.ComponentId >= componentId) {
-                    newEdgeSet.emplace(TVertex(edge.First.ComponentId - 1, edge.First.VertexId), edge.Second);
-                } else if (edge.Second.ComponentId >= componentId) {
-                    newEdgeSet.emplace(edge.First, TVertex(edge.Second.ComponentId - 1, edge.Second.VertexId));
-                } else {
-                    newEdgeSet.emplace(edge);
+                TVertex newFirst = edge.First;
+                if (newFirst.ComponentId >= componentId) {
+                    --newFirst.ComponentId;
                 }
+
+                TVertex newSecond = edge.Second;
+                if (newSecond.ComponentId >= componentId) {
+                    --newSecond.ComponentId;
+                }
+
+                newEdgeSet.emplace(newFirst, newSecond);
             }
 
             return newEdgeSet;

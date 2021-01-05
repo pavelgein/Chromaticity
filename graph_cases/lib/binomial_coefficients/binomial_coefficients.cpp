@@ -32,6 +32,7 @@ public:
 
 private:
     long long Compute(unsigned int n, unsigned int k) {
+        assert((n <= 1000) && "n should be less than 1000");
         std::lock_guard<std::mutex> lock(M);
         for (unsigned int m = Cache.size(); m <= n; m++) {
             Cache.push_back(ComputeRow(m));
