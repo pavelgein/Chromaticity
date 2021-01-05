@@ -419,9 +419,14 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
             TEdge edgeToContract{TVertex(0, 0), TVertex(5, 0)};
             auto [contracted, newBase] = denseGraph.ContractEdge(edgeToContract);
             ASSERT_EQUAL(*newBase, TCompleteGraph({1, 3, 1, 1, 1}));
+            TEdgeSet expectedEdgeSet = {
+                {TVertex(2, 0), TVertex(0, 0)},
+                {TVertex(3, 0), TVertex(2, 0)},
+            };
+            ASSERT_EQUAL(contracted.DeletedEdges(), expectedEdgeSet);
         }
 
-        denseGraph.CountAcyclicOrientations();
+        ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 17688);
     }
 }
 
