@@ -62,8 +62,16 @@ static TInvariantChecker checkers[] = {
     {"Acyclic", &NMultipartiteGraphs::IGraph::CountAcyclicOrientations},
 };
 
-void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp, bool computeAll=true) {
-    PrintCollection(outp, target.DeletedEdges());
+struct TCompareOptions {
+    bool ComputeAll = true;
+    bool WriteEdgeSet = true;
+};
+
+void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TDenseGraph& target, std::ostream& outp, const TCompareOptions& options) {
+    if (options.WriteEdgeSet) {
+        PrintCollection(outp, target.DeletedEdges());
+    }
+
     const std::string* reason = nullptr;
     for (const auto& checker : checkers) {
         auto sourceValue = checker.Checker(source);
@@ -74,7 +82,7 @@ void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, co
                 reason = &checker.Name;
             }
 
-            if (!computeAll) {
+            if (!options.ComputeAll) {
                 break;
             }
         }
@@ -93,17 +101,17 @@ void CompareSourceAndDense(const NMultipartiteGraphs::TCompleteGraph& source, co
 
 class TCompareGraphsTask : public ITask {
 public:
-    TCompareGraphsTask(const NMultipartiteGraphs::TCompleteGraph& source, TWriter& writer, NMultipartiteGraphs::TDenseGraph target, bool computeAll)
+    TCompareGraphsTask(const NMultipartiteGraphs::TCompleteGraph& source, TWriter& writer, NMultipartiteGraphs::TDenseGraph target, TCompareOptions options)
         : Source(source)
         , Target(target)
         , Writer(writer)
-        , ComputeAll(computeAll)
+        , Options(std::move(options))
     {
     }
 
     void Do() override {
         std::stringstream ss;
-        CompareSourceAndDense(Source, Target, ss, ComputeAll);
+        CompareSourceAndDense(Source, Target, ss, Options);
         ss.flush();
         Writer.Push(ss.str());
     }
@@ -112,12 +120,12 @@ private:
     const NMultipartiteGraphs::TCompleteGraph& Source;
     NMultipartiteGraphs::TDenseGraph Target;
     TWriter& Writer;
-    bool ComputeAll;
+    TCompareOptions Options;
 };
 
 
 void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const NMultipartiteGraphs::TCompleteGraph& target,
-                        std::ostream& debug, int threadCount, bool computeAll) {
+                        std::ostream& debug, int threadCount, const TCompareOptions& options) {
     debug << "Checking graphs" << std::endl;
     debug << "Source: " << source << std::endl;
     debug << "Target: " << target << std::endl;
@@ -186,7 +194,7 @@ void compare_two_graphs(const NMultipartiteGraphs::TCompleteGraph& source, const
         }
 
         NMultipartiteGraphs::TDenseGraph newTarget{target, std::move(current_edges)};
-        executer->Add(std::make_unique<TCompareGraphsTask>(source, writer, std::move(newTarget), computeAll));
+        executer->Add(std::make_unique<TCompareGraphsTask>(source, writer, std::move(newTarget), options));
         done += 1;
         if (done % 100000 == 0) {
             std::cerr << "done: " << done << ", queue size: " << executer->Size() << std::endl;
@@ -202,7 +210,8 @@ struct TOptions {
     std::vector<INT> Target;
     int ThreadCount;
     std::string OutputFile;
-    bool ComputeAll = false;
+
+    TCompareOptions Options;
 
     static TOptions Parse(int argc, const char ** argv) {
         TOptions opts;
@@ -212,7 +221,7 @@ struct TOptions {
         parser.AddShortOption('t').AppendTo(&opts.Target).Required(true);
         parser.AddLongOption("thread-count").Store(&opts.ThreadCount).Default("6");
         parser.AddLongOption("output-file").Store(&opts.OutputFile).Default("");
-        parser.AddLongOption("compute-all").SetFlag(&opts.ComputeAll).Default("false");
+        parser.AddLongOption("compute-all").SetFlag(&opts.Options.ComputeAll).Default("false");
 
         parser.Parse(argc, argv);
 
@@ -232,7 +241,7 @@ int main(int argc, const char ** argv) {
         out->open(opts.OutputFile);
     }
 
-    compare_two_graphs(source, target, out ? *out : std::cout, opts.ThreadCount, opts.ComputeAll);
+    compare_two_graphs(source, target, out ? *out : std::cout, opts.ThreadCount, opts.Options);
     if (out) {
         out->flush();
         out->close();
