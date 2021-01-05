@@ -22,7 +22,7 @@ public:
 
     TCompleteGraph& operator=(const TCompleteGraph& other) = default;
 
-    TCompleteGraph(std::vector<INT> components)
+    explicit TCompleteGraph(std::vector<INT> components)
         : Components(std::move(components))
         , I3Invariant_(0)
         , I4Invariant_(0)
@@ -96,7 +96,11 @@ using TEdgeSet = std::unordered_set<TEdge>;
  */
 class TDenseGraph : public IGraph {
 public:
-    TDenseGraph() = default;
+    TDenseGraph()
+        : Graph(nullptr)
+        , EdgeSet{}
+      {
+      };
 
     TDenseGraph(TDenseGraph&& other) = default;
 
