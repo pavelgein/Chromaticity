@@ -610,7 +610,6 @@ size_t TDenseGraph::ComponentsNumber() const {
 
 
 INT TDenseGraph::CountAcyclicOrientations() const {
-//    std::cerr << EdgeSet.size() << std::endl;
     if (EdgeSet.empty()) {
         return Graph->CountAcyclicOrientations();
     }
@@ -619,7 +618,7 @@ INT TDenseGraph::CountAcyclicOrientations() const {
     TEdge firstEdge = *newEdgeSet.begin();
     newEdgeSet.erase(newEdgeSet.begin());
 
-    TDenseGraph newGraph(*Graph, newEdgeSet);
+    TDenseGraph newGraph(*Graph, std::move(newEdgeSet));
     auto pair = ContractEdge(firstEdge);
 
     auto withEdge = newGraph.CountAcyclicOrientations();
