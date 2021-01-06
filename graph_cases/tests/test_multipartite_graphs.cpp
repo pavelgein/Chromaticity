@@ -428,6 +428,60 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
 
         ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 17688);
     }
+
+    UNIT_TEST(TestDense5) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({4, 4, 3});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(1, 0)},
+            {TVertex(0, 1), TVertex(1, 0)},
+        };
+
+        TDenseGraph denseGraph(graph, edges);
+
+        ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 6146526);
+    }
+
+    UNIT_TEST(TestDense6) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({3, 3, 3, 1});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(3, 0)},
+        };
+
+        TDenseGraph denseGraph(graph, edges);
+        auto actual = denseGraph.CountAcyclicOrientations();
+        std::cerr << actual;
+        ASSERT_EQUAL(actual, 1211328);
+    }
+
+    UNIT_TEST(TestDense7) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({3, 3, 3, 1});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(3, 0)},
+            {TVertex(0, 1), TVertex(3, 0)},
+        };
+
+        TDenseGraph denseGraph(graph, edges);
+        auto actual = denseGraph.CountAcyclicOrientations();
+        std::cerr << actual;
+        ASSERT_EQUAL(actual, 1073736);
+    }
+
+    UNIT_TEST(TestDense8) {
+        using namespace NMultipartiteGraphs;
+        TCompleteGraph graph({4, 4, 3});
+        TEdgeSet edges = {
+            {TVertex(0, 0), TVertex(1, 0)},
+            {TVertex(0, 1), TVertex(1, 0)},
+            {TVertex(0, 2), TVertex(1, 0)},
+        };
+
+        TDenseGraph denseGraph(graph, edges);
+        auto actual = denseGraph.CountAcyclicOrientations();
+        ASSERT_EQUAL(actual, 5072790);
+    }
 }
 
 UNIT_TEST_SUITE(TestDenseGraph) {
