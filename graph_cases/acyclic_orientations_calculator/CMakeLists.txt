@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(acyclic_orientations_calculator main.cpp)
+TARGET_LINK_LIBRARIES(acyclic_orientations_calculator multipartite_graphs optparser)
