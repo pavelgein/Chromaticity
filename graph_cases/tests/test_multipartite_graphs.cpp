@@ -438,7 +438,6 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
         };
 
         TDenseGraph denseGraph(graph, edges);
-
         ASSERT_EQUAL(denseGraph.CountAcyclicOrientations(), 6146526);
     }
 
@@ -451,7 +450,6 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
 
         TDenseGraph denseGraph(graph, edges);
         auto actual = denseGraph.CountAcyclicOrientations();
-        std::cerr << actual;
         ASSERT_EQUAL(actual, 1211328);
     }
 
@@ -465,7 +463,6 @@ UNIT_TEST_SUITE(TestAcyclicOrientations) {
 
         TDenseGraph denseGraph(graph, edges);
         auto actual = denseGraph.CountAcyclicOrientations();
-        std::cerr << actual;
         ASSERT_EQUAL(actual, 1073736);
     }
 
