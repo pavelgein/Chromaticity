@@ -132,7 +132,7 @@ UNIT_TEST_SUITE(Invariants) {
         TDenseGraph graph(completeGraph, edges);
 
         ASSERT(graph.I2Invariant() == 32, "i2 invariant mismatched");
-        ASSERT(graph.I3Invariant() == 23, "i3 invariatn mismatched");
+        ASSERT(graph.I3Invariant() == 23, "i3 invariant mismatched");
     }
 
     UNIT_TEST(TextXi2_3) {
@@ -156,7 +156,7 @@ UNIT_TEST_SUITE(Invariants) {
         TDenseGraph graph(completeGraph, edges);
 
         ASSERT(graph.I2Invariant() == 32, "i2 invariant mismatched");
-        ASSERT(graph.I3Invariant() == 28, "i3 invariatn mismatched");
+        ASSERT(graph.I3Invariant() == 28, "i3 invariant mismatched");
 
     }
 }
