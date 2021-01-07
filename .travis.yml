@@ -7,7 +7,7 @@ addons:
     update: true
     packages:
       - cmake
-      - gcc-8
+      - g++-8
 
 compiler:
   - gcc
