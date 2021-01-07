@@ -5,8 +5,10 @@ language: cpp
 addons:
   apt:
     update: true
+    source:
+      - ubuntu-toolchain-r-test
     packages:
-      - cmake
+      - gcc-8
       - g++-8
       - clang-10
 
