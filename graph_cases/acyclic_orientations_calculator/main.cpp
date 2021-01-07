@@ -6,17 +6,18 @@
 #include <charconv>
 #include <memory>
 #include <fstream>
+#include <exception>
 
 
 class IDataAsker {
 public:
     IDataAsker() = default;
 
-    virtual void AskCompleteGraph(std::ostream& output) const = 0;
+    virtual NMultipartiteGraphs::TCompleteGraph AskCompleteGraph() = 0;
 
-    virtual void AskEdgeCount(std::ostream& output) const = 0;
+    virtual unsigned AskEdgeCount() = 0;
 
-    virtual void AskEdge(std::ostream& output) const = 0;
+    virtual NMultipartiteGraphs::TEdge AskEdge() = 0;
 
     virtual ~IDataAsker() = default;
 };
@@ -25,7 +26,7 @@ class IDataWriter {
 public:
     IDataWriter() = default;
 
-    virtual void WriteAnswer(const NMultipartiteGraphs::TDenseGraph& graph, long long answer, std::ostream& output) const = 0;
+    virtual void WriteAnswer(const NMultipartiteGraphs::TDenseGraph& graph, long long answer) const = 0;
 
     virtual ~IDataWriter() = default;
 };
@@ -57,114 +58,147 @@ NMultipartiteGraphs::TCompleteGraph ParseCompleteGraph(const std::string& line) 
     return NMultipartiteGraphs::TCompleteGraph(ReadLine<INT>(line));
 }
 
+class TStopProcessException : public std::exception {
+};
 
-bool RunOne(std::istream& input, std::ostream& output, const IDataAsker& asker, const IDataWriter& writer) {
-    asker.AskCompleteGraph(output);
-    std::string completeGraphLine;
-    std::getline(input, completeGraphLine);
 
-    if (completeGraphLine == "exit") {
+bool RunOne(IDataAsker& asker, IDataWriter& writer) {
+    try {
+        NMultipartiteGraphs::TCompleteGraph completeGraph = asker.AskCompleteGraph();
+        unsigned edgeCount = asker.AskEdgeCount();
+        NMultipartiteGraphs::TEdgeSet edges;
+        for (unsigned edgeNum = 0; edgeNum != edgeCount; ++edgeNum) {
+            edges.emplace(asker.AskEdge());
+        }
+
+        NMultipartiteGraphs::TDenseGraph denseGraph(completeGraph, std::move(edges));
+        writer.WriteAnswer(denseGraph, denseGraph.CountAcyclicOrientations());
+    } catch (const TStopProcessException&) {
         return false;
     }
-
-    auto completeGraph = ParseCompleteGraph(completeGraphLine);
-
-    unsigned edgeCount;
-    asker.AskEdgeCount(output);
-    input >> edgeCount;
-
-    NMultipartiteGraphs::TEdgeSet edges;
-    for (unsigned edgeNum = 0; edgeNum != edgeCount; ++edgeNum) {
-        asker.AskEdge(output);
-        std::string line;
-        std::getline(input, line);
-        while (line.empty()) {
-            std::getline(input, line);
-        }
-        auto tokens = ReadLine<int>(line);
-        while (tokens.size() != 4) {
-            output << "expect four numbers (component, index, component, index), got"  << line;
-            std::getline(input, line);
-            tokens = ReadLine<int>(line);
-        }
-
-        NMultipartiteGraphs::TVertex first(tokens[0], tokens[1]);
-        NMultipartiteGraphs::TVertex second(tokens[2], tokens[3]);
-        edges.emplace(first, second);
-    }
-
-    NMultipartiteGraphs::TDenseGraph denseGraph(completeGraph, std::move(edges));
-    writer.WriteAnswer(denseGraph, denseGraph.CountAcyclicOrientations(), output);
 
     return true;
 }
 
-class TSilentAsker : public IDataAsker {
+
+std::string GetNonEmptyLine(std::istream& input) {
+    std::string line;
+    while (line.empty()) {
+        std::getline(input, line);
+    }
+
+    return line;
+}
+
+class TStreamAsker : public IDataAsker {
 public:
-    void AskCompleteGraph(std::ostream&) const override {
-
+    TStreamAsker(std::istream& input, std::ostream& output, bool verbose)
+        : Input(input)
+        , Output(output)
+        , Verbose(verbose)
+    {
     }
 
-    void AskEdgeCount(std::ostream&) const override {
+public:
+    NMultipartiteGraphs::TCompleteGraph AskCompleteGraph() override {
+        if (Verbose) {
+            Output << "Enter compete graph, separating partitions with space: ";
+        }
 
+        std::string line = GetNonEmptyLine();
+        if (IsStopLine(line)) {
+            throw TStopProcessException();
+        }
+
+        return ParseCompleteGraph(line);
     }
 
-    void AskEdge(std::ostream&) const override {
+    unsigned int AskEdgeCount() override {
+        if (Verbose) {
+            Output << "Enter the number of deleted edges: ";
+        }
 
+        unsigned answer;
+        Input >> answer;
+        return answer;
     }
 
-    virtual ~TSilentAsker() = default;
+    NMultipartiteGraphs::TEdge AskEdge() override {
+        if (Verbose) {
+            Output << "Input edge: expect four numbers (component, index, component, index)";
+        }
+
+        auto tokens = ReadLine<int>(GetNonEmptyLine());
+        while (tokens.size() != 4) {
+            if (Verbose) {
+                Output << "expect four numbers (component, index, component, index)" ;
+            }
+            tokens = ReadLine<int>(GetNonEmptyLine());
+        }
+
+        NMultipartiteGraphs::TVertex first(tokens[0], tokens[1]);
+        NMultipartiteGraphs::TVertex second(tokens[2], tokens[3]);
+        return {first, second};
+    }
+
+private:
+    std::string GetNonEmptyLine() {
+        return ::GetNonEmptyLine(Input);
+    }
+
+    static bool IsStopLine(const std::string& line) {
+        return line == "exit";
+    }
+
+    std::istream& Input;
+    std::ostream& Output;
+    bool Verbose;
 };
 
 class TFullWriter : public IDataWriter {
 public:
-    void WriteAnswer(const NMultipartiteGraphs::TDenseGraph& graph, long long answer, std::ostream& output) const override {
-       output << (*graph.BaseGraph());
-       output << " {";
+    TFullWriter(std::ostream& output)
+        : Output(output)
+    {
+    }
+
+    void WriteAnswer(const NMultipartiteGraphs::TDenseGraph& graph, long long answer) const override {
+       Output << (*graph.BaseGraph());
+       Output << " {";
        bool first = true;
        for (const auto& edge : graph.DeletedEdges()) {
            if (!first) {
-               output << ", ";
+               Output << ", ";
            }
-           output << edge;
+           Output << edge;
            first = false;
        }
 
-       output << "} ";
-       output << answer;
-       output << std::endl;
+       Output << "} ";
+       Output << answer;
+       Output << std::endl;
     }
 
     virtual ~TFullWriter() = default;
-};
 
-
-class TVerboseAsker : public IDataAsker {
-public:
-    void AskCompleteGraph(std::ostream& output) const override {
-        output << "Enter compete graph, separating partitions with space" << std::endl;
-    }
-
-    void AskEdgeCount(std::ostream& output) const override {
-        output << "Enter the number of deleted edges: ";
-    }
-
-    void AskEdge(std::ostream& output) const override {
-        output << "Input edge: ";
-    }
-
-    virtual ~TVerboseAsker() = default;
+private:
+    std::ostream& Output;
 };
 
 class TSimpleWriter : public IDataWriter {
 public:
-    void WriteAnswer(const NMultipartiteGraphs::TDenseGraph&, long long int answer, std::ostream &output) const override {
-        output << answer << std::endl;
+    TSimpleWriter(std::ostream& output)
+        : Output(output)
+    {
     }
 
-    virtual ~TSimpleWriter() = default;
-};
+    void WriteAnswer(const NMultipartiteGraphs::TDenseGraph&, long long int answer) const override {
+        Output << answer << std::endl;
+    }
 
+private:
+    std::ostream& Output;
+};
 
 
 int main(int argc, const char ** argv) {
@@ -189,20 +223,15 @@ int main(int argc, const char ** argv) {
     std::istream& inputStream = (inputFileStream.get() == nullptr) ? std::cin : *inputFileStream;
     std::ostream& outputStream = (outputFileStream.get() == nullptr) ? std::cout : *outputFileStream;
 
-    std::unique_ptr<IDataAsker> asker;
-    if (inputFile.empty()) {
-        asker = std::make_unique<TVerboseAsker>();
-    } else {
-        asker = std::make_unique<TSilentAsker>();
-    }
+    std::unique_ptr<TStreamAsker> asker = std::make_unique<TStreamAsker>(inputStream, outputStream, outputFileStream.get() == nullptr);
     std::unique_ptr<IDataWriter> writer;
     if (outputFile.empty()) {
-        writer = std::make_unique<TSimpleWriter>();
-    }else {
-        writer = std::make_unique<TFullWriter>();
+        writer = std::make_unique<TSimpleWriter>(outputStream);
+    } else {
+        writer = std::make_unique<TFullWriter>(outputStream);
     }
 
-    while (RunOne(inputStream, outputStream, *asker, *writer)) {
+    while (RunOne(*asker, *writer)) {
     }
 
     if (inputFileStream.get() != nullptr) {
