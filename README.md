@@ -1,4 +1,5 @@
 ## Chromaticity
+[![Build Status](https://app.travis-ci.com/pavelgein/Chromaticity.svg?branch=master)](https://app.travis-ci.com/github/pavelgein/Chromaticity)
 
 This repo contains some tools, helping to study chromatic polynomials of complete multipartite graphs.
 
