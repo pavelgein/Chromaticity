@@ -15,6 +15,9 @@ SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g")
 SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -funroll-loops -Ofast")
 SET(CMAKE_CXX_FLAGS_TS "${CMAKE_CXX_FLAGS} -fsanitize=thread -fPIE -pie -g")
 
+SET(CMAKE_CXX_FLAGS_ADDRESS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+SET(CMAKE_LINKER_FLAGS_ADDRESS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+
 INCLUDE_DIRECTORIES(lib)
 
 ADD_SUBDIRECTORY(lib)
