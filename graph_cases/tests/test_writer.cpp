@@ -26,7 +26,7 @@ UNIT_TEST_SUITE(Writer) {
     };
 
     UNIT_TEST(Simple) {
-        std::stringstream ss;
+        std::stringstream ss{};
         std::unordered_set<size_t> numbers;
         {
             auto writer = TWriter{ss};
