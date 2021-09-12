@@ -39,7 +39,7 @@ UNIT_TEST_SUITE(Writer) {
             }
         }
 
-        size_t number;
+        size_t number = 0;
         while (ss >> number) {
             auto iter = numbers.find(number);
             if (iter == numbers.end()) {
