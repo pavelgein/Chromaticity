@@ -17,6 +17,7 @@ SET(CMAKE_CXX_FLAGS_TS "${CMAKE_CXX_FLAGS} -fsanitize=thread -fPIE -pie -g")
 
 SET(CMAKE_CXX_FLAGS_ADDRESS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
 SET(CMAKE_LINKER_FLAGS_ADDRESS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+SET(CMAKE_CXX_FLAGS_MEMORY "${CMAKE_CXX_FLAGS} -g -fsanitize=memory -fno-omit-frame-pointer")
 
 INCLUDE_DIRECTORIES(lib)
 
